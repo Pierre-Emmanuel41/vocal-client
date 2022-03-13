@@ -13,8 +13,7 @@ import fr.pederobien.utils.event.EventHandler;
 import fr.pederobien.utils.event.EventManager;
 import fr.pederobien.utils.event.IEventListener;
 import fr.pederobien.vocal.client.interfaces.IVocalClient;
-import fr.pederobien.vocal.common.impl.Idc;
-import fr.pederobien.vocal.common.impl.Oid;
+import fr.pederobien.vocal.common.impl.VocalIdentifier;
 import fr.pederobien.vocal.common.impl.VocalMessageExtractor;
 import fr.pederobien.vocal.common.impl.VocalMessageFactory;
 import fr.pederobien.vocal.common.impl.VolumeResult;
@@ -141,8 +140,8 @@ public class VocalClient implements IVocalClient, IEventListener {
 		if (udpClient.isDisposed() || !event.getMicrophone().equals(soundProvider.getMicrophone()))
 			return;
 
-		IVocalMessage message = factory.create(Idc.PLAYER_SPEAK, Oid.INFO, getName(), event.getEncoded());
-		udpClient.send(new AddressMessage(message.generate(), message.getHeader().getIdentifier()));
+		IVocalMessage message = factory.create(VocalIdentifier.PLAYER_SPEAK_INFO, getName(), event.getEncoded());
+		udpClient.send(new AddressMessage(message.generate(), message.getHeader().getSequence()));
 	}
 
 	@EventHandler
@@ -151,7 +150,7 @@ public class VocalClient implements IVocalClient, IEventListener {
 			return;
 
 		IVocalMessage message = factory.parse(event.getBuffer());
-		if (pauseSpeakers || message.getHeader().getIdc() != Idc.PLAYER_SPEAK || message.getHeader().getOid() != Oid.SET)
+		if (pauseSpeakers || message.getHeader().getIdentifier() != VocalIdentifier.PLAYER_SPEAK_SET)
 			return;
 
 		PlayerSpeakSetMessageV10 playerSpeakMessage = (PlayerSpeakSetMessageV10) message;
