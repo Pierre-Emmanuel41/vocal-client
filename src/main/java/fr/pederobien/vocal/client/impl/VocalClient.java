@@ -13,7 +13,6 @@ import fr.pederobien.sound.interfaces.ISoundResourcesProvider;
 import fr.pederobien.utils.event.EventHandler;
 import fr.pederobien.utils.event.EventManager;
 import fr.pederobien.utils.event.IEventListener;
-import fr.pederobien.utils.event.LogEvent;
 import fr.pederobien.vocal.client.interfaces.IVocalClient;
 import fr.pederobien.vocal.common.impl.VocalAddressMessage;
 import fr.pederobien.vocal.common.impl.VocalIdentifier;
@@ -164,8 +163,6 @@ public class VocalClient implements IVocalClient, IEventListener {
 			return;
 
 		IVocalMessage message = factory.parse(event.getBuffer());
-		EventManager.callEvent(new LogEvent("Data : %s", message));
-
 		if (pauseSpeakers.get() || message.getHeader().getIdentifier() != VocalIdentifier.PLAYER_SPEAK_SET)
 			return;
 
