@@ -1,8 +1,9 @@
 package fr.pederobien.vocal.client.impl;
 
+import java.util.concurrent.atomic.AtomicBoolean;
+
 import fr.pederobien.communication.event.ConnectionCompleteEvent;
 import fr.pederobien.communication.event.DataReceivedEvent;
-import fr.pederobien.communication.impl.AddressMessage;
 import fr.pederobien.communication.impl.UdpClientImpl;
 import fr.pederobien.communication.interfaces.IUdpConnection;
 import fr.pederobien.sound.event.MicrophoneDataEncodedEvent;
@@ -12,7 +13,9 @@ import fr.pederobien.sound.interfaces.ISoundResourcesProvider;
 import fr.pederobien.utils.event.EventHandler;
 import fr.pederobien.utils.event.EventManager;
 import fr.pederobien.utils.event.IEventListener;
+import fr.pederobien.utils.event.LogEvent;
 import fr.pederobien.vocal.client.interfaces.IVocalClient;
+import fr.pederobien.vocal.common.impl.VocalAddressMessage;
 import fr.pederobien.vocal.common.impl.VocalIdentifier;
 import fr.pederobien.vocal.common.impl.VocalMessageExtractor;
 import fr.pederobien.vocal.common.impl.VocalMessageFactory;
@@ -26,7 +29,7 @@ public class VocalClient implements IVocalClient, IEventListener {
 	private ISoundResourcesProvider soundProvider;
 	private IUdpConnection udpClient;
 	private VocalMessageFactory factory;
-	private boolean pauseMicrophone, pauseSpeakers;
+	private AtomicBoolean pauseMicrophone, pauseSpeakers, isDisposed;
 
 	/**
 	 * Creates a server for vocal communication between several players.
@@ -42,6 +45,10 @@ public class VocalClient implements IVocalClient, IEventListener {
 		soundProvider = new SoundResourcesProvider();
 		factory = VocalMessageFactory.getInstance(0);
 		udpClient = new UdpClientImpl(address, port, new VocalMessageExtractor());
+
+		pauseMicrophone = new AtomicBoolean(false);
+		pauseSpeakers = new AtomicBoolean(false);
+		isDisposed = new AtomicBoolean(false);
 
 		EventManager.registerListener(this);
 	}
@@ -60,7 +67,16 @@ public class VocalClient implements IVocalClient, IEventListener {
 
 	@Override
 	public void dispose() {
+		if (!isDisposed.compareAndSet(false, true))
+			return;
+
+		disconnect();
 		udpClient.dispose();
+	}
+
+	@Override
+	public boolean isDisposed() {
+		return isDisposed.get();
 	}
 
 	@Override
@@ -71,19 +87,17 @@ public class VocalClient implements IVocalClient, IEventListener {
 
 	@Override
 	public void pauseMicrophone() {
-		if (pauseMicrophone)
+		if (!pauseMicrophone.compareAndSet(false, true))
 			return;
 
-		pauseMicrophone = true;
 		soundProvider.getMicrophone().pause();
 	}
 
 	@Override
 	public void pauseSpeakers() {
-		if (pauseSpeakers)
+		if (!pauseSpeakers.compareAndSet(false, true))
 			return;
 
-		pauseSpeakers = true;
 		soundProvider.getSpeakers().pause();
 	}
 
@@ -95,19 +109,17 @@ public class VocalClient implements IVocalClient, IEventListener {
 
 	@Override
 	public void resumeMicrophone() {
-		if (!pauseMicrophone)
+		if (!pauseMicrophone.compareAndSet(true, false))
 			return;
 
-		pauseMicrophone = false;
 		soundProvider.getMicrophone().resume();
 	}
 
 	@Override
 	public void resumeSpeakers() {
-		if (!pauseSpeakers)
+		if (!pauseSpeakers.compareAndSet(true, false))
 			return;
 
-		pauseSpeakers = false;
 		soundProvider.getSpeakers().resume();
 	}
 
@@ -131,8 +143,11 @@ public class VocalClient implements IVocalClient, IEventListener {
 		if (!event.getConnection().equals(udpClient))
 			return;
 
-		soundProvider.getMicrophone().start();
-		soundProvider.getSpeakers().start();
+		if (!pauseMicrophone.get())
+			soundProvider.getMicrophone().start();
+
+		if (!pauseSpeakers.get())
+			soundProvider.getSpeakers().start();
 	}
 
 	@EventHandler
@@ -140,8 +155,7 @@ public class VocalClient implements IVocalClient, IEventListener {
 		if (udpClient.isDisposed() || !event.getMicrophone().equals(soundProvider.getMicrophone()))
 			return;
 
-		IVocalMessage message = factory.create(VocalIdentifier.PLAYER_SPEAK_INFO, getName(), event.getEncoded());
-		udpClient.send(new AddressMessage(message.generate(), message.getHeader().getSequence()));
+		udpClient.send(new VocalAddressMessage(factory.create(VocalIdentifier.PLAYER_SPEAK_INFO, getName(), event.getEncoded())));
 	}
 
 	@EventHandler
@@ -150,7 +164,9 @@ public class VocalClient implements IVocalClient, IEventListener {
 			return;
 
 		IVocalMessage message = factory.parse(event.getBuffer());
-		if (pauseSpeakers || message.getHeader().getIdentifier() != VocalIdentifier.PLAYER_SPEAK_SET)
+		EventManager.callEvent(new LogEvent("Data : %s", message));
+
+		if (pauseSpeakers.get() || message.getHeader().getIdentifier() != VocalIdentifier.PLAYER_SPEAK_SET)
 			return;
 
 		PlayerSpeakSetMessageV10 playerSpeakMessage = (PlayerSpeakSetMessageV10) message;

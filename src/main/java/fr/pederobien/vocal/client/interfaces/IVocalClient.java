@@ -20,6 +20,11 @@ public interface IVocalClient {
 	void dispose();
 
 	/**
+	 * @return True if this object has been disposed, false otherwise.
+	 */
+	boolean isDisposed();
+
+	/**
 	 * Stops the soundProvider.getMicrophone() and the soundProvider.getSpeakers(). But does not disconnected the internal connection
 	 * from the remote.
 	 */
