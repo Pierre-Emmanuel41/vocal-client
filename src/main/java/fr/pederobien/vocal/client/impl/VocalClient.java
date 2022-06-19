@@ -14,10 +14,8 @@ import fr.pederobien.utils.event.EventHandler;
 import fr.pederobien.utils.event.EventManager;
 import fr.pederobien.utils.event.IEventListener;
 import fr.pederobien.vocal.client.interfaces.IVocalClient;
-import fr.pederobien.vocal.common.impl.VocalAddressMessage;
 import fr.pederobien.vocal.common.impl.VocalIdentifier;
 import fr.pederobien.vocal.common.impl.VocalMessageExtractor;
-import fr.pederobien.vocal.common.impl.VocalMessageFactory;
 import fr.pederobien.vocal.common.impl.VolumeResult;
 import fr.pederobien.vocal.common.impl.messages.v10.PlayerSpeakSetMessageV10;
 import fr.pederobien.vocal.common.interfaces.IVocalMessage;
@@ -27,7 +25,6 @@ public class VocalClient implements IVocalClient, IEventListener {
 	private int port;
 	private ISoundResourcesProvider soundProvider;
 	private IUdpConnection udpClient;
-	private VocalMessageFactory factory;
 	private AtomicBoolean pauseMicrophone, pauseSpeakers, isDisposed;
 
 	/**
@@ -42,7 +39,6 @@ public class VocalClient implements IVocalClient, IEventListener {
 		this.port = port;
 
 		soundProvider = new SoundResourcesProvider();
-		factory = VocalMessageFactory.getInstance(0);
 		udpClient = new UdpClientImpl(address, port, new VocalMessageExtractor());
 
 		pauseMicrophone = new AtomicBoolean(false);
@@ -154,7 +150,8 @@ public class VocalClient implements IVocalClient, IEventListener {
 		if (udpClient.isDisposed() || !event.getMicrophone().equals(soundProvider.getMicrophone()))
 			return;
 
-		udpClient.send(new VocalAddressMessage(factory.create(VocalIdentifier.PLAYER_SPEAK_INFO, getName(), event.getEncoded())));
+		// udpClient.send(new VocalAddressMessage(VocalClientMessageFactory.create(VocalIdentifier.PLAYER_SPEAK_INFO, getName(),
+		// event.getEncoded())));
 	}
 
 	@EventHandler
@@ -162,7 +159,7 @@ public class VocalClient implements IVocalClient, IEventListener {
 		if (!event.getConnection().equals(udpClient))
 			return;
 
-		IVocalMessage message = factory.parse(event.getBuffer());
+		IVocalMessage message = VocalClientMessageFactory.parse(event.getBuffer());
 		if (pauseSpeakers.get() || message.getHeader().getIdentifier() != VocalIdentifier.PLAYER_SPEAK_SET)
 			return;
 
