@@ -11,7 +11,9 @@ import fr.pederobien.communication.event.ConnectionCompleteEvent;
 import fr.pederobien.utils.event.EventHandler;
 import fr.pederobien.utils.event.EventManager;
 import fr.pederobien.utils.event.IEventListener;
+import fr.pederobien.vocal.client.event.CommunicationProtocolVersionSetPostEvent;
 import fr.pederobien.vocal.client.event.ServerReachableStatusChangeEvent;
+import fr.pederobien.vocal.client.impl.request.ServerRequestManager;
 import fr.pederobien.vocal.client.interfaces.IServerRequestManager;
 import fr.pederobien.vocal.client.interfaces.IVocalServer;
 
@@ -32,7 +34,7 @@ public class VocalServer implements IVocalServer, IEventListener {
 		isReachable = new AtomicBoolean(false);
 		tryOpening = new AtomicBoolean(false);
 		connection = new VocalTcpConnection(this);
-
+		serverRequestManager = new ServerRequestManager(this);
 		lock = new ReentrantLock(true);
 		serverConfiguration = lock.newCondition();
 		communicationProtocolVersion = lock.newCondition();
@@ -135,6 +137,19 @@ public class VocalServer implements IVocalServer, IEventListener {
 			return;
 
 		setReachable(true);
+	}
+
+	@EventHandler
+	private void onSetCommunicationProtocolVersion(CommunicationProtocolVersionSetPostEvent event) {
+		if (connection == null || !event.getConnection().equals(connection))
+			return;
+
+		lock.lock();
+		try {
+			communicationProtocolVersion.signal();
+		} finally {
+			lock.unlock();
+		}
 	}
 
 	/**

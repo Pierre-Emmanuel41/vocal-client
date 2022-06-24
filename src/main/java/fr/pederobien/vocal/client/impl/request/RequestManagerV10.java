@@ -14,8 +14,13 @@ import fr.pederobien.vocal.common.interfaces.IVocalMessage;
 
 public class RequestManagerV10 extends RequestManager {
 
-	public RequestManagerV10(IVocalServer server, float version) {
-		super(server, version);
+	/**
+	 * Creates a request manager associated to version 1.0 in order to modify the given server and answer to remote requests.
+	 * 
+	 * @param server The server to update.
+	 */
+	public RequestManagerV10(IVocalServer server) {
+		super(server, 1.0f);
 
 		// Server messages
 		getRequests().put(VocalIdentifier.GET_CP_VERSIONS, holder -> onGetCommunicationProtocolVersions((GetCommunicationProtocolVersionsV10) holder.getRequest()));

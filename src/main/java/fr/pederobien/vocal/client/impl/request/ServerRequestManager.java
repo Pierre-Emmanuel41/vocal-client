@@ -22,7 +22,7 @@ public class ServerRequestManager implements IServerRequestManager {
 	 */
 	public ServerRequestManager(IVocalServer server) {
 		managers = new TreeMap<Float, IRequestManager>();
-		// register(new RequestManagerV10(server));
+		register(new RequestManagerV10(server));
 	}
 
 	@Override
@@ -53,6 +53,15 @@ public class ServerRequestManager implements IServerRequestManager {
 	@Override
 	public IVocalMessage onSetCommunicationProtocolVersion(IVocalMessage request, float version) {
 		return findManagerAndReturn(1.0f, manager -> manager.onSetCommunicationProtocolVersion(request, version));
+	}
+
+	/**
+	 * Register the given request manager in this global request manager.
+	 * 
+	 * @param manager The manager to request.
+	 */
+	protected void register(IRequestManager manager) {
+		managers.put(manager.getVersion(), manager);
 	}
 
 	/**
