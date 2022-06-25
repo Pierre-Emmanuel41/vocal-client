@@ -6,10 +6,13 @@ import fr.pederobien.utils.event.EventManager;
 import fr.pederobien.vocal.client.event.CommunicationProtocolVersionGetPostEvent;
 import fr.pederobien.vocal.client.event.CommunicationProtocolVersionSetPostEvent;
 import fr.pederobien.vocal.client.impl.RequestReceivedHolder;
+import fr.pederobien.vocal.client.impl.SecondaryPlayer;
 import fr.pederobien.vocal.client.interfaces.IVocalServer;
 import fr.pederobien.vocal.common.impl.VocalIdentifier;
 import fr.pederobien.vocal.common.impl.messages.v10.GetCommunicationProtocolVersionsV10;
+import fr.pederobien.vocal.common.impl.messages.v10.GetServerConfigurationV10;
 import fr.pederobien.vocal.common.impl.messages.v10.SetCommunicationProtocolVersionV10;
+import fr.pederobien.vocal.common.impl.messages.v10.model.PlayerInfo;
 import fr.pederobien.vocal.common.interfaces.IVocalMessage;
 
 public class RequestManagerV10 extends RequestManager {
@@ -35,6 +38,28 @@ public class RequestManagerV10 extends RequestManager {
 	@Override
 	public IVocalMessage onSetCommunicationProtocolVersion(IVocalMessage request, float version) {
 		return answer(getVersion(), request, VocalIdentifier.SET_CP_VERSION, version);
+	}
+
+	@Override
+	public IVocalMessage onServerJoin(String name, boolean isMute, boolean isDeafen) {
+		return create(getVersion(), VocalIdentifier.SET_SERVER_JOIN, name, isMute, isDeafen);
+	}
+
+	@Override
+	public IVocalMessage getServerConfiguration() {
+		return create(getVersion(), VocalIdentifier.GET_SERVER_CONFIGURATION);
+	}
+
+	@Override
+	public void onGetServerConfiguration(IVocalMessage request) {
+		GetServerConfigurationV10 serverInfoMessage = (GetServerConfigurationV10) request;
+
+		for (PlayerInfo playerInfo : serverInfoMessage.getServerInfo().values()) {
+			SecondaryPlayer player = new SecondaryPlayer(getServer(), playerInfo.getName());
+			player.setMute(player.isMute());
+			player.setMuteByMainPlayer(playerInfo.isMuteByMainPlayer());
+			player.setDeafen(player.isDeafen());
+		}
 	}
 
 	/**

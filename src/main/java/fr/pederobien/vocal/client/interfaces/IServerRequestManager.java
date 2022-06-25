@@ -43,4 +43,32 @@ public interface IServerRequestManager {
 	 * @return The message to send to the server in order to specify the supported versions.
 	 */
 	IVocalMessage onSetCommunicationProtocolVersion(IVocalMessage request, float version);
+
+	/**
+	 * Creates a message in order to join a vocal server.
+	 * 
+	 * @param version  The protocol version to use to create a vocal message.
+	 * @param name     The player's name.
+	 * @param isMute   The player's mute status.
+	 * @param isDeafen The player's deafen status.
+	 * 
+	 * @return The message to send to the remote in order to join a vocal server.
+	 */
+	IVocalMessage onServerJoin(float version, String name, boolean isMute, boolean isDeafen);
+
+	/**
+	 * Creates a message in order to retrieve the server configuration.
+	 * 
+	 * @param version The protocol version to use to create a vocal message.
+	 * 
+	 * @return The message to send to the remote in order to get the server configuration.
+	 */
+	IVocalMessage getServerConfiguration(float version);
+
+	/**
+	 * Update the configuration of the server associated to this request manager.
+	 * 
+	 * @param request The request that contains the server configuration.
+	 */
+	void onGetServerConfiguration(IVocalMessage request);
 }

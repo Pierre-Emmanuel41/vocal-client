@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.NavigableMap;
 import java.util.TreeMap;
+import java.util.function.Consumer;
 import java.util.function.Function;
 
 import fr.pederobien.vocal.client.impl.RequestReceivedHolder;
@@ -55,6 +56,21 @@ public class ServerRequestManager implements IServerRequestManager {
 		return findManagerAndReturn(1.0f, manager -> manager.onSetCommunicationProtocolVersion(request, version));
 	}
 
+	@Override
+	public IVocalMessage onServerJoin(float version, String name, boolean isMute, boolean isDeafen) {
+		return findManagerAndReturn(version, manager -> manager.onServerJoin(name, isMute, isDeafen));
+	}
+
+	@Override
+	public IVocalMessage getServerConfiguration(float version) {
+		return findManagerAndReturn(version, manager -> manager.getServerConfiguration());
+	}
+
+	@Override
+	public void onGetServerConfiguration(IVocalMessage request) {
+		findManagerAndAccept(request.getHeader().getVersion(), manager -> manager.onGetServerConfiguration(request));
+	}
+
 	/**
 	 * Register the given request manager in this global request manager.
 	 * 
@@ -78,5 +94,19 @@ public class ServerRequestManager implements IServerRequestManager {
 			return null;
 
 		return function.apply(manager);
+	}
+
+	/**
+	 * Apply the function of the manager associated to the given version if registered.
+	 * 
+	 * @param version  The version of the manager.
+	 * @param function The function to apply.
+	 */
+	protected void findManagerAndAccept(float version, Consumer<IRequestManager> consumer) {
+		IRequestManager manager = managers.get(version);
+		if (manager == null)
+			return;
+
+		consumer.accept(manager);
 	}
 }

@@ -13,6 +13,7 @@ import fr.pederobien.utils.event.IEventListener;
 import fr.pederobien.utils.event.LogEvent;
 import fr.pederobien.vocal.client.event.CommunicationProtocolVersionGetPostEvent;
 import fr.pederobien.vocal.client.event.CommunicationProtocolVersionSetPostEvent;
+import fr.pederobien.vocal.client.event.VocalServerJoinPreEvent;
 import fr.pederobien.vocal.client.interfaces.IResponse;
 import fr.pederobien.vocal.client.interfaces.IServerRequestManager;
 import fr.pederobien.vocal.client.interfaces.IVocalServer;
@@ -39,6 +40,16 @@ public class VocalTcpConnection implements IEventListener {
 		EventManager.registerListener(this);
 	}
 
+	/**
+	 * Send a message to the remote in order to retrieve the server configuration.
+	 * 
+	 * @param callback The callback to run when an answer is received from the server.
+	 */
+	public void getServerConfiguration(Consumer<IResponse> callback) {
+		IVocalMessage request = getRequestManager().getServerConfiguration(getVersion());
+		send(request, args -> parse(args, callback, message -> getRequestManager().onGetServerConfiguration(message)));
+	}
+
 	@EventHandler(priority = EventPriority.LOWEST)
 	private void onCommunicationProtocolVersionGet(CommunicationProtocolVersionGetPostEvent event) {
 		if (!event.getServer().equals(getServer()))
@@ -54,6 +65,14 @@ public class VocalTcpConnection implements IEventListener {
 
 		setVersion(getServer().getRequestManager().getVersions().contains(event.getVersion()) ? event.getVersion() : 1.0f);
 		send(getRequestManager().onSetCommunicationProtocolVersion(event.getRequest(), event.getVersion()), null);
+	}
+
+	@EventHandler(priority = EventPriority.HIGHEST)
+	private void onServerJoin(VocalServerJoinPreEvent event) {
+		if (!event.getServer().equals(getServer()))
+			return;
+
+		send(getRequestManager().onServerJoin(getVersion(), event.getPlayerName(), false, false), args -> parse(args, event.getCallback(), null));
 	}
 
 	@EventHandler

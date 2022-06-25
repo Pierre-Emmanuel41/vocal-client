@@ -6,14 +6,20 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
+import java.util.function.Consumer;
 
 import fr.pederobien.communication.event.ConnectionCompleteEvent;
+import fr.pederobien.communication.event.ConnectionDisposedEvent;
 import fr.pederobien.utils.event.EventHandler;
 import fr.pederobien.utils.event.EventManager;
 import fr.pederobien.utils.event.IEventListener;
+import fr.pederobien.utils.event.LogEvent;
 import fr.pederobien.vocal.client.event.CommunicationProtocolVersionSetPostEvent;
 import fr.pederobien.vocal.client.event.ServerReachableStatusChangeEvent;
+import fr.pederobien.vocal.client.event.VocalServerJoinPostEvent;
+import fr.pederobien.vocal.client.event.VocalServerJoinPreEvent;
 import fr.pederobien.vocal.client.impl.request.ServerRequestManager;
+import fr.pederobien.vocal.client.interfaces.IResponse;
 import fr.pederobien.vocal.client.interfaces.IServerRequestManager;
 import fr.pederobien.vocal.client.interfaces.IVocalServer;
 
@@ -22,6 +28,7 @@ public class VocalServer implements IVocalServer, IEventListener {
 	private InetSocketAddress address;
 	private AtomicBoolean isReachable;
 	private AtomicBoolean tryOpening;
+	private AtomicBoolean isJoined;
 	private IServerRequestManager serverRequestManager;
 	private VocalTcpConnection connection;
 	private Lock lock;
@@ -33,7 +40,7 @@ public class VocalServer implements IVocalServer, IEventListener {
 
 		isReachable = new AtomicBoolean(false);
 		tryOpening = new AtomicBoolean(false);
-		connection = new VocalTcpConnection(this);
+		isJoined = new AtomicBoolean(false);
 		serverRequestManager = new ServerRequestManager(this);
 		lock = new ReentrantLock(true);
 		serverConfiguration = lock.newCondition();
@@ -110,6 +117,44 @@ public class VocalServer implements IVocalServer, IEventListener {
 	}
 
 	@Override
+	public void join(String name, Consumer<IResponse> callback) {
+		if (!isJoined.compareAndSet(false, true))
+			return;
+
+		Consumer<IResponse> update = response -> {
+			if (!response.hasFailed())
+				EventManager.callEvent(new VocalServerJoinPostEvent(this));
+			callback.accept(response);
+		};
+		EventManager.callEvent(new VocalServerJoinPreEvent(this, name, update));
+
+		lock.lock();
+		try {
+			if (!serverConfiguration.await(5000, TimeUnit.MILLISECONDS)) {
+				isJoined.set(false);
+				connection.getTcpConnection().dispose();
+				throw new IllegalStateException("Time out on server configuration request.");
+			}
+
+			isJoined.set(true);
+		} catch (InterruptedException e) {
+			// Do nothing
+		} finally {
+			lock.unlock();
+		}
+	}
+
+	@Override
+	public boolean isJoined() {
+		return false;
+	}
+
+	@Override
+	public void leave(Consumer<IResponse> callback) {
+
+	}
+
+	@Override
 	public void close() {
 		closeConnection();
 	}
@@ -150,6 +195,36 @@ public class VocalServer implements IVocalServer, IEventListener {
 		} finally {
 			lock.unlock();
 		}
+	}
+
+	@EventHandler
+	private void onServerJoin(VocalServerJoinPostEvent event) {
+		if (!event.getServer().equals(this))
+			return;
+
+		Consumer<IResponse> callback = response -> {
+			if (response.hasFailed())
+				EventManager.callEvent(new LogEvent("Error while retrieving server configuration, reason: %s", response.getErrorCode().getMessage()));
+			else {
+				lock.lock();
+				try {
+					serverConfiguration.signal();
+				} finally {
+					lock.unlock();
+				}
+			}
+		};
+
+		connection.getServerConfiguration(callback);
+	}
+
+	@EventHandler
+	private void onConnectionDisposed(ConnectionDisposedEvent event) {
+		if (connection == null || !event.getConnection().equals(connection.getTcpConnection()))
+			return;
+
+		setReachable(false);
+		EventManager.unregisterListener(this);
 	}
 
 	/**
