@@ -71,4 +71,13 @@ public interface IServerRequestManager {
 	 * @param request The request that contains the server configuration.
 	 */
 	void onGetServerConfiguration(IVocalMessage request);
+
+	/**
+	 * Creates a message in order to leave a vocal server.
+	 * 
+	 * @param version The protocol version to use to create a vocal message.
+	 * 
+	 * @return The message to send to the remote in order to leave a vocal server.
+	 */
+	IVocalMessage onServerLeave(float version);
 }

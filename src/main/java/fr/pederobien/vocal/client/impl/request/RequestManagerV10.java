@@ -62,6 +62,11 @@ public class RequestManagerV10 extends RequestManager {
 		}
 	}
 
+	@Override
+	public IVocalMessage onServerLeave() {
+		return create(getVersion(), VocalIdentifier.SET_SERVER_LEAVE);
+	}
+
 	/**
 	 * Throw a {@link CommunicationProtocolVersionGetEvent} in order to fill the supported versions of the communication protocol.
 	 * 

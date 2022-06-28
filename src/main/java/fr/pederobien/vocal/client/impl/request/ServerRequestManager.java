@@ -71,6 +71,11 @@ public class ServerRequestManager implements IServerRequestManager {
 		findManagerAndAccept(request.getHeader().getVersion(), manager -> manager.onGetServerConfiguration(request));
 	}
 
+	@Override
+	public IVocalMessage onServerLeave(float version) {
+		return findManagerAndReturn(version, manager -> manager.onServerLeave());
+	}
+
 	/**
 	 * Register the given request manager in this global request manager.
 	 * 

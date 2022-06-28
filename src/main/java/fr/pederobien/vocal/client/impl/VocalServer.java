@@ -20,6 +20,8 @@ import fr.pederobien.vocal.client.event.VocalServerAddressChangePostEvent;
 import fr.pederobien.vocal.client.event.VocalServerAddressChangePreEvent;
 import fr.pederobien.vocal.client.event.VocalServerJoinPostEvent;
 import fr.pederobien.vocal.client.event.VocalServerJoinPreEvent;
+import fr.pederobien.vocal.client.event.VocalServerLeavePostEvent;
+import fr.pederobien.vocal.client.event.VocalServerLeavePreEvent;
 import fr.pederobien.vocal.client.event.VocalServerNameChangePostEvent;
 import fr.pederobien.vocal.client.event.VocalServerNameChangePreEvent;
 import fr.pederobien.vocal.client.impl.request.ServerRequestManager;
@@ -156,12 +158,21 @@ public class VocalServer implements IVocalServer, IEventListener {
 
 	@Override
 	public boolean isJoined() {
-		return false;
+		return isJoined.get();
 	}
 
 	@Override
 	public void leave(Consumer<IResponse> callback) {
+		if (!isJoined.compareAndSet(true, false))
 
+			return;
+
+		Consumer<IResponse> update = response -> {
+			if (!response.hasFailed())
+				EventManager.callEvent(new VocalServerLeavePostEvent(this));
+			callback.accept(response);
+		};
+		EventManager.callEvent(new VocalServerLeavePreEvent(this, update));
 	}
 
 	@Override
