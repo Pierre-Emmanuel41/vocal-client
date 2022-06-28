@@ -14,10 +14,14 @@ import fr.pederobien.utils.event.EventHandler;
 import fr.pederobien.utils.event.EventManager;
 import fr.pederobien.utils.event.IEventListener;
 import fr.pederobien.utils.event.LogEvent;
-import fr.pederobien.vocal.client.event.VocalCommunicationProtocolVersionSetPostEvent;
 import fr.pederobien.vocal.client.event.ServerReachableStatusChangeEvent;
+import fr.pederobien.vocal.client.event.VocalCommunicationProtocolVersionSetPostEvent;
+import fr.pederobien.vocal.client.event.VocalServerAddressChangePostEvent;
+import fr.pederobien.vocal.client.event.VocalServerAddressChangePreEvent;
 import fr.pederobien.vocal.client.event.VocalServerJoinPostEvent;
 import fr.pederobien.vocal.client.event.VocalServerJoinPreEvent;
+import fr.pederobien.vocal.client.event.VocalServerNameChangePostEvent;
+import fr.pederobien.vocal.client.event.VocalServerNameChangePreEvent;
 import fr.pederobien.vocal.client.impl.request.ServerRequestManager;
 import fr.pederobien.vocal.client.interfaces.IResponse;
 import fr.pederobien.vocal.client.interfaces.IServerRequestManager;
@@ -62,7 +66,7 @@ public class VocalServer implements IVocalServer, IEventListener {
 				return;
 
 			String oldName = this.name;
-			this.name = name;
+			EventManager.callEvent(new VocalServerNameChangePreEvent(this, name), () -> this.name = name, new VocalServerNameChangePostEvent(this, oldName));
 		} finally {
 			lock.unlock();
 		}
@@ -77,11 +81,17 @@ public class VocalServer implements IVocalServer, IEventListener {
 	public void setAddress(InetSocketAddress address) {
 		lock.lock();
 		try {
-			if (this.address.equals(address))
+			InetSocketAddress oldAddress = getAddress();
+			if (oldAddress.equals(address))
 				return;
 
-			InetSocketAddress oldAddress = this.address;
-			this.address = address;
+			Runnable update = () -> {
+				this.address = address;
+				if (connection != null && !connection.getTcpConnection().isDisposed())
+					closeConnection();
+				openConnection();
+			};
+			EventManager.callEvent(new VocalServerAddressChangePreEvent(this, address), update, new VocalServerAddressChangePostEvent(this, oldAddress));
 		} finally {
 			lock.unlock();
 		}
