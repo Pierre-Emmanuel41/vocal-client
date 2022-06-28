@@ -14,7 +14,7 @@ import fr.pederobien.utils.event.EventHandler;
 import fr.pederobien.utils.event.EventManager;
 import fr.pederobien.utils.event.IEventListener;
 import fr.pederobien.utils.event.LogEvent;
-import fr.pederobien.vocal.client.event.CommunicationProtocolVersionSetPostEvent;
+import fr.pederobien.vocal.client.event.VocalCommunicationProtocolVersionSetPostEvent;
 import fr.pederobien.vocal.client.event.ServerReachableStatusChangeEvent;
 import fr.pederobien.vocal.client.event.VocalServerJoinPostEvent;
 import fr.pederobien.vocal.client.event.VocalServerJoinPreEvent;
@@ -185,7 +185,7 @@ public class VocalServer implements IVocalServer, IEventListener {
 	}
 
 	@EventHandler
-	private void onSetCommunicationProtocolVersion(CommunicationProtocolVersionSetPostEvent event) {
+	private void onSetCommunicationProtocolVersion(VocalCommunicationProtocolVersionSetPostEvent event) {
 		if (connection == null || !event.getConnection().equals(connection))
 			return;
 

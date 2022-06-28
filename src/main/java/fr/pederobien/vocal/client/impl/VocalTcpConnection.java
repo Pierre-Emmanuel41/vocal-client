@@ -11,8 +11,8 @@ import fr.pederobien.utils.event.EventManager;
 import fr.pederobien.utils.event.EventPriority;
 import fr.pederobien.utils.event.IEventListener;
 import fr.pederobien.utils.event.LogEvent;
-import fr.pederobien.vocal.client.event.CommunicationProtocolVersionGetPostEvent;
-import fr.pederobien.vocal.client.event.CommunicationProtocolVersionSetPostEvent;
+import fr.pederobien.vocal.client.event.VocalCommunicationProtocolVersionGetPostEvent;
+import fr.pederobien.vocal.client.event.VocalCommunicationProtocolVersionSetPostEvent;
 import fr.pederobien.vocal.client.event.VocalServerJoinPreEvent;
 import fr.pederobien.vocal.client.interfaces.IResponse;
 import fr.pederobien.vocal.client.interfaces.IServerRequestManager;
@@ -51,7 +51,7 @@ public class VocalTcpConnection implements IEventListener {
 	}
 
 	@EventHandler(priority = EventPriority.LOWEST)
-	private void onCommunicationProtocolVersionGet(CommunicationProtocolVersionGetPostEvent event) {
+	private void onCommunicationProtocolVersionGet(VocalCommunicationProtocolVersionGetPostEvent event) {
 		if (!event.getServer().equals(getServer()))
 			return;
 
@@ -59,7 +59,7 @@ public class VocalTcpConnection implements IEventListener {
 	}
 
 	@EventHandler(priority = EventPriority.LOWEST)
-	private void onCommunicationProtocolVersionSet(CommunicationProtocolVersionSetPostEvent event) {
+	private void onCommunicationProtocolVersionSet(VocalCommunicationProtocolVersionSetPostEvent event) {
 		if (!event.getConnection().equals(this) || getVersion() != -1)
 			return;
 

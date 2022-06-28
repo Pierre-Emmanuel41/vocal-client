@@ -3,8 +3,8 @@ package fr.pederobien.vocal.client.impl.request;
 import java.util.List;
 
 import fr.pederobien.utils.event.EventManager;
-import fr.pederobien.vocal.client.event.CommunicationProtocolVersionGetPostEvent;
-import fr.pederobien.vocal.client.event.CommunicationProtocolVersionSetPostEvent;
+import fr.pederobien.vocal.client.event.VocalCommunicationProtocolVersionGetPostEvent;
+import fr.pederobien.vocal.client.event.VocalCommunicationProtocolVersionSetPostEvent;
 import fr.pederobien.vocal.client.impl.RequestReceivedHolder;
 import fr.pederobien.vocal.client.impl.SecondaryPlayer;
 import fr.pederobien.vocal.client.interfaces.IVocalServer;
@@ -68,17 +68,17 @@ public class RequestManagerV10 extends RequestManager {
 	 * @param request The request sent by the remote in order to get the supported versions.
 	 */
 	private void onGetCommunicationProtocolVersions(GetCommunicationProtocolVersionsV10 request) {
-		EventManager.callEvent(new CommunicationProtocolVersionGetPostEvent(getServer(), request));
+		EventManager.callEvent(new VocalCommunicationProtocolVersionGetPostEvent(getServer(), request));
 	}
 
 	/**
-	 * Throw a {@link CommunicationProtocolVersionSetPostEvent} in order to set the version of the communication protocol to use
+	 * Throw a {@link VocalCommunicationProtocolVersionSetPostEvent} in order to set the version of the communication protocol to use
 	 * between the client and the server.
 	 * 
 	 * @param holder The holder that gather the request received by the remote and the connection that has received the request.
 	 */
 	private void onSetCommunicationProtocolVersion(RequestReceivedHolder holder) {
 		SetCommunicationProtocolVersionV10 request = (SetCommunicationProtocolVersionV10) holder.getRequest();
-		EventManager.callEvent(new CommunicationProtocolVersionSetPostEvent(getServer(), request, request.getVersion(), holder.getConnection()));
+		EventManager.callEvent(new VocalCommunicationProtocolVersionSetPostEvent(getServer(), request, request.getVersion(), holder.getConnection()));
 	}
 }

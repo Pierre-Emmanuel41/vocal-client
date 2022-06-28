@@ -6,7 +6,7 @@ import java.util.StringJoiner;
 import fr.pederobien.vocal.client.interfaces.IVocalServer;
 import fr.pederobien.vocal.common.interfaces.IVocalMessage;
 
-public class CommunicationProtocolVersionGetPostEvent extends VocalServerEvent {
+public class VocalCommunicationProtocolVersionGetPostEvent extends VocalServerEvent {
 	private IVocalMessage request;
 
 	/**
@@ -16,7 +16,7 @@ public class CommunicationProtocolVersionGetPostEvent extends VocalServerEvent {
 	 * @param server  The server that received the request.
 	 * @param request The request sent by the remote in order to get the supported versions.
 	 */
-	public CommunicationProtocolVersionGetPostEvent(IVocalServer server, IVocalMessage request) {
+	public VocalCommunicationProtocolVersionGetPostEvent(IVocalServer server, IVocalMessage request) {
 		super(server);
 		this.request = request;
 	}

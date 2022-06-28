@@ -6,7 +6,7 @@ import fr.pederobien.vocal.client.impl.VocalTcpConnection;
 import fr.pederobien.vocal.client.interfaces.IVocalServer;
 import fr.pederobien.vocal.common.interfaces.IVocalMessage;
 
-public class CommunicationProtocolVersionSetPostEvent extends VocalServerEvent {
+public class VocalCommunicationProtocolVersionSetPostEvent extends VocalServerEvent {
 	private IVocalMessage request;
 	private float version;
 	private VocalTcpConnection connection;
@@ -20,7 +20,7 @@ public class CommunicationProtocolVersionSetPostEvent extends VocalServerEvent {
 	 * @param version    The version to use.
 	 * @param connection The connection that has received the request.
 	 */
-	public CommunicationProtocolVersionSetPostEvent(IVocalServer server, IVocalMessage request, float version, VocalTcpConnection connection) {
+	public VocalCommunicationProtocolVersionSetPostEvent(IVocalServer server, IVocalMessage request, float version, VocalTcpConnection connection) {
 		super(server);
 		this.request = request;
 		this.version = version;
