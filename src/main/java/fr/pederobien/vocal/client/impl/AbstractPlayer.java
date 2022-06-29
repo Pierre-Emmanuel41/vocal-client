@@ -5,11 +5,11 @@ import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 import java.util.function.Consumer;
 
-import fr.pederobien.vocal.client.interfaces.IPlayer;
+import fr.pederobien.vocal.client.interfaces.IVocalPlayer;
 import fr.pederobien.vocal.client.interfaces.IResponse;
 import fr.pederobien.vocal.client.interfaces.IVocalServer;
 
-public abstract class AbstractPlayer implements IPlayer {
+public abstract class AbstractPlayer implements IVocalPlayer {
 	private IVocalServer server;
 	private String name;
 	private AtomicBoolean isMute, isDeafen;

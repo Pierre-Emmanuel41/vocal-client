@@ -2,7 +2,7 @@ package fr.pederobien.vocal.client.interfaces;
 
 import java.util.function.Consumer;
 
-public interface IPlayer {
+public interface IVocalPlayer {
 
 	/**
 	 * @return The server on which this player is registered.
