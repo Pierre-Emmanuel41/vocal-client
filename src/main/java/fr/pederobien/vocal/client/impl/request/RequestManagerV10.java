@@ -6,7 +6,7 @@ import fr.pederobien.utils.event.EventManager;
 import fr.pederobien.vocal.client.event.VocalCommunicationProtocolVersionGetPostEvent;
 import fr.pederobien.vocal.client.event.VocalCommunicationProtocolVersionSetPostEvent;
 import fr.pederobien.vocal.client.impl.RequestReceivedHolder;
-import fr.pederobien.vocal.client.impl.SecondaryPlayer;
+import fr.pederobien.vocal.client.impl.SecondaryVocalPlayer;
 import fr.pederobien.vocal.client.interfaces.IVocalServer;
 import fr.pederobien.vocal.common.impl.VocalIdentifier;
 import fr.pederobien.vocal.common.impl.messages.v10.GetCommunicationProtocolVersionsV10;
@@ -55,7 +55,7 @@ public class RequestManagerV10 extends RequestManager {
 		GetServerConfigurationV10 serverInfoMessage = (GetServerConfigurationV10) request;
 
 		for (PlayerInfo playerInfo : serverInfoMessage.getServerInfo().values()) {
-			SecondaryPlayer player = new SecondaryPlayer(getServer(), playerInfo.getName());
+			SecondaryVocalPlayer player = new SecondaryVocalPlayer(getServer(), playerInfo.getName());
 			player.setMute(player.isMute());
 			player.setMuteByMainPlayer(playerInfo.isMuteByMainPlayer());
 			player.setDeafen(player.isDeafen());

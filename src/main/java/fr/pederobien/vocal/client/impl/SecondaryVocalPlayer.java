@@ -2,10 +2,10 @@ package fr.pederobien.vocal.client.impl;
 
 import java.util.concurrent.atomic.AtomicBoolean;
 
-import fr.pederobien.vocal.client.interfaces.ISecondaryPlayer;
+import fr.pederobien.vocal.client.interfaces.ISecondaryVocalPlayer;
 import fr.pederobien.vocal.client.interfaces.IVocalServer;
 
-public class SecondaryPlayer extends AbstractPlayer implements ISecondaryPlayer {
+public class SecondaryVocalPlayer extends AbstractPlayer implements ISecondaryVocalPlayer {
 	private AtomicBoolean isMuteByMainPlayer;
 
 	/**
@@ -14,7 +14,7 @@ public class SecondaryPlayer extends AbstractPlayer implements ISecondaryPlayer 
 	 * @param server The server on which this player is registered.
 	 * @param name   The player name.
 	 */
-	public SecondaryPlayer(IVocalServer server, String name) {
+	public SecondaryVocalPlayer(IVocalServer server, String name) {
 		super(server, name);
 
 		isMuteByMainPlayer = new AtomicBoolean(false);
