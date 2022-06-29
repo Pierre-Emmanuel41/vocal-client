@@ -70,4 +70,9 @@ public interface IVocalServer {
 	 * @return The manager responsible to create messages to send to the remote.
 	 */
 	IServerRequestManager getRequestManager();
+
+	/**
+	 * @return The player associated to this vocal server.
+	 */
+	IVocalMainPlayer getMainPlayer();
 }

@@ -5,8 +5,8 @@ import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 import java.util.function.Consumer;
 
-import fr.pederobien.vocal.client.interfaces.IVocalPlayer;
 import fr.pederobien.vocal.client.interfaces.IResponse;
+import fr.pederobien.vocal.client.interfaces.IVocalPlayer;
 import fr.pederobien.vocal.client.interfaces.IVocalServer;
 
 public abstract class AbstractPlayer implements IVocalPlayer {
@@ -16,9 +16,10 @@ public abstract class AbstractPlayer implements IVocalPlayer {
 	private Lock lock;
 
 	/**
-	 * Creates a player associated to a name.
+	 * Creates a player associated to a name and a server.
 	 * 
-	 * @param name The player name.
+	 * @param server The server on which this player is registered.
+	 * @param name   The player name.
 	 */
 	protected AbstractPlayer(IVocalServer server, String name) {
 		this.server = server;

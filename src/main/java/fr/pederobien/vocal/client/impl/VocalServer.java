@@ -27,6 +27,7 @@ import fr.pederobien.vocal.client.event.VocalServerNameChangePreEvent;
 import fr.pederobien.vocal.client.impl.request.ServerRequestManager;
 import fr.pederobien.vocal.client.interfaces.IResponse;
 import fr.pederobien.vocal.client.interfaces.IServerRequestManager;
+import fr.pederobien.vocal.client.interfaces.IVocalMainPlayer;
 import fr.pederobien.vocal.client.interfaces.IVocalServer;
 
 public class VocalServer implements IVocalServer, IEventListener {
@@ -39,6 +40,7 @@ public class VocalServer implements IVocalServer, IEventListener {
 	private VocalTcpConnection connection;
 	private Lock lock;
 	private Condition serverConfiguration, communicationProtocolVersion;
+	private IVocalMainPlayer mainPlayer;
 
 	public VocalServer(String name, InetSocketAddress address) {
 		this.name = name;
@@ -134,8 +136,10 @@ public class VocalServer implements IVocalServer, IEventListener {
 			return;
 
 		Consumer<IResponse> update = response -> {
-			if (!response.hasFailed())
+			if (!response.hasFailed()) {
+				mainPlayer = new VocalMainPlayer(this, name);
 				EventManager.callEvent(new VocalServerJoinPostEvent(this));
+			}
 			callback.accept(response);
 		};
 		EventManager.callEvent(new VocalServerJoinPreEvent(this, name, update));
@@ -183,6 +187,11 @@ public class VocalServer implements IVocalServer, IEventListener {
 	@Override
 	public IServerRequestManager getRequestManager() {
 		return serverRequestManager;
+	}
+
+	@Override
+	public IVocalMainPlayer getMainPlayer() {
+		return null;
 	}
 
 	@Override
