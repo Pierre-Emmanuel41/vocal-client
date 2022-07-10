@@ -236,11 +236,8 @@ public class VocalServer implements IVocalServer, IEventListener {
 			lock.unlock();
 		}
 
-		if (connectionLost) {
-			join(mainPlayer.getName(), response -> {
-			});
-			connectionLost = false;
-		}
+		if (connectionLost)
+			join(mainPlayer.getName(), response -> connectionLost = false);
 	}
 
 	@EventHandler

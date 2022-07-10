@@ -3,6 +3,8 @@ package fr.pederobien.vocal.client.impl;
 import java.util.function.Consumer;
 
 import fr.pederobien.communication.ResponseCallbackArgs;
+import fr.pederobien.communication.event.ConnectionDisposedEvent;
+import fr.pederobien.communication.event.ConnectionLostEvent;
 import fr.pederobien.communication.event.UnexpectedDataReceivedEvent;
 import fr.pederobien.communication.impl.TcpClientImpl;
 import fr.pederobien.communication.interfaces.ITcpConnection;
@@ -95,6 +97,22 @@ public class VocalTcpConnection implements IEventListener {
 			EventManager.callEvent(new LogEvent(format, getVersion(), request.getHeader().getVersion()));
 		} else
 			getServer().getRequestManager().apply(new RequestReceivedHolder(VocalClientMessageFactory.parse(event.getAnswer()), this));
+	}
+
+	@EventHandler
+	private void onConnectionDispose(ConnectionDisposedEvent event) {
+		if (!event.getConnection().equals(getTcpConnection()))
+			return;
+
+		EventManager.unregisterListener(this);
+	}
+
+	@EventHandler
+	private void onConnectionLost(ConnectionLostEvent event) {
+		if (!event.getConnection().equals(getTcpConnection()))
+			return;
+
+		setVersion(-1);
 	}
 
 	/**

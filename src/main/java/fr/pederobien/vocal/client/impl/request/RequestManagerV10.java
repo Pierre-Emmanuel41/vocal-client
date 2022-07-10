@@ -5,6 +5,7 @@ import java.util.List;
 import fr.pederobien.utils.event.EventManager;
 import fr.pederobien.vocal.client.event.VocalCommunicationProtocolVersionGetPostEvent;
 import fr.pederobien.vocal.client.event.VocalCommunicationProtocolVersionSetPostEvent;
+import fr.pederobien.vocal.client.exceptions.PlayerAlreadyRegisteredException;
 import fr.pederobien.vocal.client.impl.RequestReceivedHolder;
 import fr.pederobien.vocal.client.impl.VocalSecondaryPlayer;
 import fr.pederobien.vocal.client.impl.VocalServerPlayerList;
@@ -63,9 +64,11 @@ public class RequestManagerV10 extends RequestManager {
 		GetServerConfigurationV10 serverInfoMessage = (GetServerConfigurationV10) request;
 
 		for (PlayerInfo playerInfo : serverInfoMessage.getServerInfo().values()) {
-			if (playerInfo.getName().equals(getServer().getMainPlayer().getName()))
-				continue;
-			((VocalServerPlayerList) getServer().getPlayers()).add(createPlayer(playerInfo));
+			try {
+				((VocalServerPlayerList) getServer().getPlayers()).add(createPlayer(playerInfo));
+			} catch (PlayerAlreadyRegisteredException e) {
+				// Do nothing
+			}
 		}
 	}
 
@@ -100,7 +103,11 @@ public class RequestManagerV10 extends RequestManager {
 	 * @param request The request sent by the remote in order to add a player.
 	 */
 	private void registerPlayerOnServer(RegisterPlayerOnServerV10 request) {
-		((VocalServerPlayerList) getServer().getPlayers()).add(createPlayer(request.getPlayerInfo()));
+		try {
+			((VocalServerPlayerList) getServer().getPlayers()).add(createPlayer(request.getPlayerInfo()));
+		} catch (PlayerAlreadyRegisteredException e) {
+			// Do nothing
+		}
 	}
 
 	/**
