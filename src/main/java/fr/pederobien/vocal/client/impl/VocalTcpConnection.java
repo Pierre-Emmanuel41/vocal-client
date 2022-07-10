@@ -15,6 +15,7 @@ import fr.pederobien.utils.event.IEventListener;
 import fr.pederobien.utils.event.LogEvent;
 import fr.pederobien.vocal.client.event.VocalCommunicationProtocolVersionGetPostEvent;
 import fr.pederobien.vocal.client.event.VocalCommunicationProtocolVersionSetPostEvent;
+import fr.pederobien.vocal.client.event.VocalMainPlayerNameChangePreEvent;
 import fr.pederobien.vocal.client.event.VocalServerJoinPreEvent;
 import fr.pederobien.vocal.client.event.VocalServerLeavePreEvent;
 import fr.pederobien.vocal.client.interfaces.IResponse;
@@ -40,6 +41,7 @@ public class VocalTcpConnection implements IEventListener {
 		connection = new TcpClientImpl(server.getAddress().getAddress().getHostAddress(), server.getAddress().getPort(), new VocalMessageExtractor(), true);
 		version = -1;
 
+		System.out.println("Creating VocalTcpConnection");
 		EventManager.registerListener(this);
 	}
 
@@ -84,6 +86,15 @@ public class VocalTcpConnection implements IEventListener {
 			return;
 
 		send(getRequestManager().onServerLeave(getVersion()), args -> parse(args, event.getCallback(), null));
+	}
+
+	@EventHandler(priority = EventPriority.HIGHEST)
+	private void onPlayerNameChange(VocalMainPlayerNameChangePreEvent event) {
+		if (!event.getPlayer().getServer().equals(getServer()))
+			return;
+
+		EventManager.callEvent(new LogEvent("[VocalTcpConnection] Player name change: old=%s,new=%s", event.getPlayer().getName(), event.getNewName()));
+		send(getRequestManager().onPlayerNameChange(getVersion(), event.getPlayer(), event.getNewName()), args -> parse(args, event.getCallback(), null));
 	}
 
 	@EventHandler

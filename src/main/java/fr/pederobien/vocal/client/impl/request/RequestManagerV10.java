@@ -1,14 +1,18 @@
 package fr.pederobien.vocal.client.impl.request;
 
 import java.util.List;
+import java.util.Optional;
+import java.util.function.Consumer;
 
 import fr.pederobien.utils.event.EventManager;
 import fr.pederobien.vocal.client.event.VocalCommunicationProtocolVersionGetPostEvent;
 import fr.pederobien.vocal.client.event.VocalCommunicationProtocolVersionSetPostEvent;
 import fr.pederobien.vocal.client.exceptions.PlayerAlreadyRegisteredException;
+import fr.pederobien.vocal.client.impl.AbstractPlayer;
 import fr.pederobien.vocal.client.impl.RequestReceivedHolder;
 import fr.pederobien.vocal.client.impl.VocalSecondaryPlayer;
 import fr.pederobien.vocal.client.impl.VocalServerPlayerList;
+import fr.pederobien.vocal.client.interfaces.IVocalMainPlayer;
 import fr.pederobien.vocal.client.interfaces.IVocalPlayer;
 import fr.pederobien.vocal.client.interfaces.IVocalServer;
 import fr.pederobien.vocal.common.impl.VocalIdentifier;
@@ -16,6 +20,7 @@ import fr.pederobien.vocal.common.impl.messages.v10.GetCommunicationProtocolVers
 import fr.pederobien.vocal.common.impl.messages.v10.GetServerConfigurationV10;
 import fr.pederobien.vocal.common.impl.messages.v10.RegisterPlayerOnServerV10;
 import fr.pederobien.vocal.common.impl.messages.v10.SetCommunicationProtocolVersionV10;
+import fr.pederobien.vocal.common.impl.messages.v10.SetPlayerNameV10;
 import fr.pederobien.vocal.common.impl.messages.v10.UnregisterPlayerFromServerV10;
 import fr.pederobien.vocal.common.impl.messages.v10.model.PlayerInfo;
 import fr.pederobien.vocal.common.interfaces.IVocalMessage;
@@ -37,6 +42,7 @@ public class RequestManagerV10 extends RequestManager {
 		// Player messages
 		getRequests().put(VocalIdentifier.REGISTER_PLAYER_ON_SERVER, holder -> registerPlayerOnServer((RegisterPlayerOnServerV10) holder.getRequest()));
 		getRequests().put(VocalIdentifier.UNREGISTER_PLAYER_FROM_SERVER, holder -> unregisterPlayerFromServer((UnregisterPlayerFromServerV10) holder.getRequest()));
+		getRequests().put(VocalIdentifier.SET_PLAYER_NAME, holder -> setPlayerName((SetPlayerNameV10) holder.getRequest()));
 	}
 
 	@Override
@@ -75,6 +81,11 @@ public class RequestManagerV10 extends RequestManager {
 	@Override
 	public IVocalMessage onServerLeave() {
 		return create(getVersion(), VocalIdentifier.SET_SERVER_LEAVE);
+	}
+
+	@Override
+	public IVocalMessage onPlayerNameChange(IVocalMainPlayer player, String newName) {
+		return create(getVersion(), VocalIdentifier.SET_PLAYER_NAME, player.getName(), newName);
 	}
 
 	/**
@@ -120,6 +131,65 @@ public class RequestManagerV10 extends RequestManager {
 	}
 
 	/**
+	 * Update the name of a player.
+	 * 
+	 * @param request The request sent by the remote in order to rename a player.
+	 */
+	private void setPlayerName(SetPlayerNameV10 request) {
+		findPlayerAndUpdate(request.getOldName(), AbstractPlayer.class, player -> player.setName(request.getNewName()));
+	}
+
+	/**
+	 * Try to find the player associated to the given name. First check if the name correspond to the main player of the server, then
+	 * check if the name refers to a player that is registered in a channel.
+	 * 
+	 * @param name The name of the player to get.
+	 * 
+	 * @return An optional that contains a player, if registered, null otherwise.
+	 */
+	private Optional<IVocalPlayer> getPlayer(String name) {
+		if (getServer().getMainPlayer() != null && getServer().getMainPlayer().getName().equals(name))
+			return Optional.of(getServer().getMainPlayer());
+
+		for (IVocalPlayer player : getServer().getPlayers())
+			if (player.getName().equals(name))
+				return Optional.of(player);
+
+		return Optional.empty();
+	}
+
+	/**
+	 * Apply the consumer if and only if the player is an instance of the given class.
+	 * 
+	 * @param player   The player to cast.
+	 * @param clazz    The class used to cast the player.
+	 * @param consumer The code to run.
+	 */
+	private <T extends IVocalPlayer> void updatePlayer(IVocalPlayer player, Class<T> clazz, Consumer<T> consumer) {
+		try {
+			consumer.accept(clazz.cast(player));
+		} catch (Exception e) {
+			// do nothing
+		}
+	}
+
+	/**
+	 * Apply the consumer if and only if there is a player associated to the given name and the player is an instance of the given
+	 * class.
+	 * 
+	 * @param name     The name of the player to update.
+	 * @param clazz    The class used to cast the player.
+	 * @param consumer The code to run.
+	 */
+	private <T extends IVocalPlayer> void findPlayerAndUpdate(String name, Class<T> clazz, Consumer<T> consumer) {
+		Optional<IVocalPlayer> optPlayer = getPlayer(name);
+		if (!optPlayer.isPresent())
+			return;
+
+		updatePlayer(optPlayer.get(), clazz, consumer);
+	}
+
+	/**
 	 * Creates a player.
 	 * 
 	 * @param info A description of the player to create.
@@ -127,6 +197,9 @@ public class RequestManagerV10 extends RequestManager {
 	 * @return The created player.
 	 */
 	private IVocalPlayer createPlayer(PlayerInfo info) {
+		if (info.getName().equals(getServer().getMainPlayer().getName()))
+			return getServer().getMainPlayer();
+
 		// Player's name
 		String name = info.getName();
 

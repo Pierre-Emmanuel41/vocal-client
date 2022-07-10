@@ -2,8 +2,10 @@ package fr.pederobien.vocal.client.impl;
 
 import java.util.function.Consumer;
 
-import fr.pederobien.vocal.client.interfaces.IVocalMainPlayer;
+import fr.pederobien.utils.event.EventManager;
+import fr.pederobien.vocal.client.event.VocalMainPlayerNameChangePreEvent;
 import fr.pederobien.vocal.client.interfaces.IResponse;
+import fr.pederobien.vocal.client.interfaces.IVocalMainPlayer;
 import fr.pederobien.vocal.client.interfaces.IVocalServer;
 
 public class VocalMainPlayer extends AbstractPlayer implements IVocalMainPlayer {
@@ -16,6 +18,14 @@ public class VocalMainPlayer extends AbstractPlayer implements IVocalMainPlayer 
 	 */
 	protected VocalMainPlayer(IVocalServer server, String name) {
 		super(server, name);
+	}
+
+	@Override
+	public void setName(String name, Consumer<IResponse> callback) {
+		if (getName().equals(name))
+			return;
+
+		EventManager.callEvent(new VocalMainPlayerNameChangePreEvent(this, name, callback));
 	}
 
 	@Override

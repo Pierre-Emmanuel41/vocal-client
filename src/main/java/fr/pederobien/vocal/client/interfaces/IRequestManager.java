@@ -70,4 +70,14 @@ public interface IRequestManager {
 	 * @return The message to send to the remote in order to leave a vocal server.
 	 */
 	IVocalMessage onServerLeave();
+
+	/**
+	 * Creates a message in order to change the name of a player.
+	 * 
+	 * @param player  The player whose the name should be updated.
+	 * @param newName The new player name.
+	 * 
+	 * @return The message to send to the remote in order to update the name of a player.
+	 */
+	IVocalMessage onPlayerNameChange(IVocalMainPlayer player, String newName);
 }

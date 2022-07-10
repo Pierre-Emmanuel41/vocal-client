@@ -80,4 +80,15 @@ public interface IServerRequestManager {
 	 * @return The message to send to the remote in order to leave a vocal server.
 	 */
 	IVocalMessage onServerLeave(float version);
+
+	/**
+	 * Creates a message in order to change the name of a player.
+	 * 
+	 * @param version The protocol version to use to create a vocal message.
+	 * @param player  The player whose the name should be updated.
+	 * @param newName The new player name.
+	 * 
+	 * @return The message to send to the remote in order to update the name of a player.
+	 */
+	IVocalMessage onPlayerNameChange(float version, IVocalMainPlayer player, String newName);
 }

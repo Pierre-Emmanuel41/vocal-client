@@ -4,7 +4,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.stream.Stream;
 
-public interface IVocalServerPlayerList {
+public interface IVocalServerPlayerList extends Iterable<IVocalPlayer> {
 
 	/**
 	 * @return The server to which this list is attached.

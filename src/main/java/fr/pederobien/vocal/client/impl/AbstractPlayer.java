@@ -5,6 +5,8 @@ import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 import java.util.function.Consumer;
 
+import fr.pederobien.utils.event.EventManager;
+import fr.pederobien.vocal.client.event.VocalPlayerNameChangePostEvent;
 import fr.pederobien.vocal.client.interfaces.IResponse;
 import fr.pederobien.vocal.client.interfaces.IVocalPlayer;
 import fr.pederobien.vocal.client.interfaces.IVocalServer;
@@ -55,6 +57,20 @@ public abstract class AbstractPlayer implements IVocalPlayer {
 	@Override
 	public boolean isDeafen() {
 		return isDeafen.get();
+	}
+
+	/**
+	 * Set the name of this player. For internal use only.
+	 * 
+	 * @param name The new player name.
+	 */
+	public void setName(String name) {
+		if (getName().equals(name))
+			return;
+
+		String oldName = this.name;
+		setName0(name);
+		EventManager.callEvent(new VocalPlayerNameChangePostEvent(this, oldName));
 	}
 
 	/**

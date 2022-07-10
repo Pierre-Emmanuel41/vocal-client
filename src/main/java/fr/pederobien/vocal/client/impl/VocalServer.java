@@ -55,6 +55,7 @@ public class VocalServer implements IVocalServer, IEventListener {
 		isJoined = new AtomicBoolean(false);
 		serverRequestManager = new ServerRequestManager(this);
 		players = new VocalServerPlayerList(this);
+		mainPlayer = new VocalMainPlayer(this, "Unknown");
 		lock = new ReentrantLock(true);
 		serverConfiguration = lock.newCondition();
 		communicationProtocolVersion = lock.newCondition();
@@ -142,7 +143,7 @@ public class VocalServer implements IVocalServer, IEventListener {
 
 		Consumer<IResponse> update = response -> {
 			if (!response.hasFailed()) {
-				mainPlayer = new VocalMainPlayer(this, name);
+				((VocalMainPlayer) mainPlayer).setName(name);
 				EventManager.callEvent(new VocalServerJoinPostEvent(this));
 			}
 			callback.accept(response);

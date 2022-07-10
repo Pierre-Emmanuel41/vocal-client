@@ -2,6 +2,7 @@ package fr.pederobien.vocal.client.impl;
 
 import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -11,7 +12,10 @@ import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 import java.util.stream.Stream;
 
+import fr.pederobien.utils.event.EventHandler;
 import fr.pederobien.utils.event.EventManager;
+import fr.pederobien.utils.event.IEventListener;
+import fr.pederobien.vocal.client.event.VocalPlayerNameChangePostEvent;
 import fr.pederobien.vocal.client.event.VocalServerListPlayerAddPostEvent;
 import fr.pederobien.vocal.client.event.VocalServerListPlayerRemovePostEvent;
 import fr.pederobien.vocal.client.exceptions.PlayerAlreadyRegisteredException;
@@ -19,7 +23,7 @@ import fr.pederobien.vocal.client.interfaces.IVocalPlayer;
 import fr.pederobien.vocal.client.interfaces.IVocalServer;
 import fr.pederobien.vocal.client.interfaces.IVocalServerPlayerList;
 
-public class VocalServerPlayerList implements IVocalServerPlayerList {
+public class VocalServerPlayerList implements IVocalServerPlayerList, IEventListener {
 	private IVocalServer server;
 	private Map<String, IVocalPlayer> players;
 	private Lock lock;
@@ -29,6 +33,13 @@ public class VocalServerPlayerList implements IVocalServerPlayerList {
 
 		players = new LinkedHashMap<String, IVocalPlayer>();
 		lock = new ReentrantLock(true);
+
+		EventManager.registerListener(this);
+	}
+
+	@Override
+	public Iterator<IVocalPlayer> iterator() {
+		return toList().iterator();
 	}
 
 	@Override
@@ -98,5 +109,24 @@ public class VocalServerPlayerList implements IVocalServerPlayerList {
 		Set<String> names = new HashSet<String>(players.keySet());
 		for (String name : names)
 			remove(name);
+	}
+
+	@EventHandler
+	private void onPlayerNameChange(VocalPlayerNameChangePostEvent event) {
+		Optional<IVocalPlayer> optOldPlayer = get(event.getOldName());
+		if (!optOldPlayer.isPresent())
+			return;
+
+		Optional<IVocalPlayer> optNewPlayer = get(event.getPlayer().getName());
+		if (optNewPlayer.isPresent())
+			throw new PlayerAlreadyRegisteredException(server.getPlayers(), optNewPlayer.get());
+
+		lock.lock();
+		try {
+			players.remove(event.getOldName());
+			players.put(event.getPlayer().getName(), event.getPlayer());
+		} finally {
+			lock.unlock();
+		}
 	}
 }
