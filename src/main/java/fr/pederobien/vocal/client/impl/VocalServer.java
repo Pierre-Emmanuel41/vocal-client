@@ -10,6 +10,7 @@ import java.util.function.Consumer;
 
 import fr.pederobien.communication.event.ConnectionCompleteEvent;
 import fr.pederobien.communication.event.ConnectionDisposedEvent;
+import fr.pederobien.communication.event.ConnectionLostEvent;
 import fr.pederobien.utils.event.EventHandler;
 import fr.pederobien.utils.event.EventManager;
 import fr.pederobien.utils.event.IEventListener;
@@ -29,6 +30,7 @@ import fr.pederobien.vocal.client.interfaces.IResponse;
 import fr.pederobien.vocal.client.interfaces.IServerRequestManager;
 import fr.pederobien.vocal.client.interfaces.IVocalMainPlayer;
 import fr.pederobien.vocal.client.interfaces.IVocalServer;
+import fr.pederobien.vocal.client.interfaces.IVocalServerPlayerList;
 
 public class VocalServer implements IVocalServer, IEventListener {
 	private String name;
@@ -37,10 +39,12 @@ public class VocalServer implements IVocalServer, IEventListener {
 	private AtomicBoolean tryOpening;
 	private AtomicBoolean isJoined;
 	private IServerRequestManager serverRequestManager;
+	private IVocalServerPlayerList players;
+	private IVocalMainPlayer mainPlayer;
 	private VocalTcpConnection connection;
 	private Lock lock;
 	private Condition serverConfiguration, communicationProtocolVersion;
-	private IVocalMainPlayer mainPlayer;
+	private boolean connectionLost;
 
 	public VocalServer(String name, InetSocketAddress address) {
 		this.name = name;
@@ -50,6 +54,7 @@ public class VocalServer implements IVocalServer, IEventListener {
 		tryOpening = new AtomicBoolean(false);
 		isJoined = new AtomicBoolean(false);
 		serverRequestManager = new ServerRequestManager(this);
+		players = new VocalServerPlayerList(this);
 		lock = new ReentrantLock(true);
 		serverConfiguration = lock.newCondition();
 		communicationProtocolVersion = lock.newCondition();
@@ -190,8 +195,13 @@ public class VocalServer implements IVocalServer, IEventListener {
 	}
 
 	@Override
+	public IVocalServerPlayerList getPlayers() {
+		return players;
+	}
+
+	@Override
 	public IVocalMainPlayer getMainPlayer() {
-		return null;
+		return mainPlayer;
 	}
 
 	@Override
@@ -225,6 +235,12 @@ public class VocalServer implements IVocalServer, IEventListener {
 		} finally {
 			lock.unlock();
 		}
+
+		if (connectionLost) {
+			join(mainPlayer.getName(), response -> {
+			});
+			connectionLost = false;
+		}
 	}
 
 	@EventHandler
@@ -249,12 +265,32 @@ public class VocalServer implements IVocalServer, IEventListener {
 	}
 
 	@EventHandler
+	private void onServerLeave(VocalServerLeavePostEvent event) {
+		if (!event.getServer().equals(this))
+			return;
+
+		isJoined.set(false);
+		((VocalServerPlayerList) getPlayers()).clear();
+	}
+
+	@EventHandler
 	private void onConnectionDisposed(ConnectionDisposedEvent event) {
 		if (connection == null || !event.getConnection().equals(connection.getTcpConnection()))
 			return;
 
 		setReachable(false);
 		EventManager.unregisterListener(this);
+	}
+
+	@EventHandler
+	private void onConnectionLost(ConnectionLostEvent event) {
+		if (connection == null || !event.getConnection().equals(connection.getTcpConnection()))
+			return;
+
+		connectionLost = true;
+		isJoined.set(false);
+		setReachable(false);
+		((VocalServerPlayerList) getPlayers()).clear();
 	}
 
 	/**

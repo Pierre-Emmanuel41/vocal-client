@@ -7,11 +7,15 @@ import fr.pederobien.vocal.client.event.VocalCommunicationProtocolVersionGetPost
 import fr.pederobien.vocal.client.event.VocalCommunicationProtocolVersionSetPostEvent;
 import fr.pederobien.vocal.client.impl.RequestReceivedHolder;
 import fr.pederobien.vocal.client.impl.VocalSecondaryPlayer;
+import fr.pederobien.vocal.client.impl.VocalServerPlayerList;
+import fr.pederobien.vocal.client.interfaces.IVocalPlayer;
 import fr.pederobien.vocal.client.interfaces.IVocalServer;
 import fr.pederobien.vocal.common.impl.VocalIdentifier;
 import fr.pederobien.vocal.common.impl.messages.v10.GetCommunicationProtocolVersionsV10;
 import fr.pederobien.vocal.common.impl.messages.v10.GetServerConfigurationV10;
+import fr.pederobien.vocal.common.impl.messages.v10.RegisterPlayerOnServerV10;
 import fr.pederobien.vocal.common.impl.messages.v10.SetCommunicationProtocolVersionV10;
+import fr.pederobien.vocal.common.impl.messages.v10.UnregisterPlayerFromServerV10;
 import fr.pederobien.vocal.common.impl.messages.v10.model.PlayerInfo;
 import fr.pederobien.vocal.common.interfaces.IVocalMessage;
 
@@ -28,6 +32,10 @@ public class RequestManagerV10 extends RequestManager {
 		// Server messages
 		getRequests().put(VocalIdentifier.GET_CP_VERSIONS, holder -> onGetCommunicationProtocolVersions((GetCommunicationProtocolVersionsV10) holder.getRequest()));
 		getRequests().put(VocalIdentifier.SET_CP_VERSION, holder -> onSetCommunicationProtocolVersion(holder));
+
+		// Player messages
+		getRequests().put(VocalIdentifier.REGISTER_PLAYER_ON_SERVER, holder -> registerPlayerOnServer((RegisterPlayerOnServerV10) holder.getRequest()));
+		getRequests().put(VocalIdentifier.UNREGISTER_PLAYER_FROM_SERVER, holder -> unregisterPlayerFromServer((UnregisterPlayerFromServerV10) holder.getRequest()));
 	}
 
 	@Override
@@ -55,10 +63,9 @@ public class RequestManagerV10 extends RequestManager {
 		GetServerConfigurationV10 serverInfoMessage = (GetServerConfigurationV10) request;
 
 		for (PlayerInfo playerInfo : serverInfoMessage.getServerInfo().values()) {
-			VocalSecondaryPlayer player = new VocalSecondaryPlayer(getServer(), playerInfo.getName());
-			player.setMute(player.isMute());
-			player.setMuteByMainPlayer(playerInfo.isMuteByMainPlayer());
-			player.setDeafen(player.isDeafen());
+			if (playerInfo.getName().equals(getServer().getMainPlayer().getName()))
+				continue;
+			((VocalServerPlayerList) getServer().getPlayers()).add(createPlayer(playerInfo));
 		}
 	}
 
@@ -85,5 +92,46 @@ public class RequestManagerV10 extends RequestManager {
 	private void onSetCommunicationProtocolVersion(RequestReceivedHolder holder) {
 		SetCommunicationProtocolVersionV10 request = (SetCommunicationProtocolVersionV10) holder.getRequest();
 		EventManager.callEvent(new VocalCommunicationProtocolVersionSetPostEvent(getServer(), request, request.getVersion(), holder.getConnection()));
+	}
+
+	/**
+	 * Adds a player on the server.
+	 * 
+	 * @param request The request sent by the remote in order to add a player.
+	 */
+	private void registerPlayerOnServer(RegisterPlayerOnServerV10 request) {
+		((VocalServerPlayerList) getServer().getPlayers()).add(createPlayer(request.getPlayerInfo()));
+	}
+
+	/**
+	 * Removes a player from the server.
+	 * 
+	 * @param request The request sent by the remote in order to remove a player.
+	 */
+	private void unregisterPlayerFromServer(UnregisterPlayerFromServerV10 request) {
+		((VocalServerPlayerList) getServer().getPlayers()).remove(request.getPlayerName());
+	}
+
+	/**
+	 * Creates a player.
+	 * 
+	 * @param info A description of the player to create.
+	 * 
+	 * @return The created player.
+	 */
+	private IVocalPlayer createPlayer(PlayerInfo info) {
+		// Player's name
+		String name = info.getName();
+
+		// Player's mute status
+		boolean isMute = info.isMute();
+
+		// Player's deafen status
+		boolean isDeafen = info.isDeafen();
+
+		// Player's muteBy status
+		boolean isMuteByMainPlayer = info.isMuteByMainPlayer();
+
+		return new VocalSecondaryPlayer(getServer(), name, isMute, isDeafen, isMuteByMainPlayer);
 	}
 }

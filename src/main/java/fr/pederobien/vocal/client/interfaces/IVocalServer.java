@@ -72,6 +72,11 @@ public interface IVocalServer {
 	IServerRequestManager getRequestManager();
 
 	/**
+	 * @return The list of players.
+	 */
+	IVocalServerPlayerList getPlayers();
+
+	/**
 	 * @return The player associated to this vocal server.
 	 */
 	IVocalMainPlayer getMainPlayer();
