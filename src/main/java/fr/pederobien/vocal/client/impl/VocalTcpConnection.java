@@ -93,7 +93,6 @@ public class VocalTcpConnection implements IEventListener {
 		if (!event.getPlayer().getServer().equals(getServer()))
 			return;
 
-		EventManager.callEvent(new LogEvent("[VocalTcpConnection] Player name change: old=%s,new=%s", event.getPlayer().getName(), event.getNewName()));
 		send(getRequestManager().onPlayerNameChange(getVersion(), event.getPlayer(), event.getNewName()), args -> parse(args, event.getCallback(), null));
 	}
 
