@@ -20,6 +20,7 @@ import fr.pederobien.vocal.common.impl.messages.v10.GetCommunicationProtocolVers
 import fr.pederobien.vocal.common.impl.messages.v10.GetServerConfigurationV10;
 import fr.pederobien.vocal.common.impl.messages.v10.RegisterPlayerOnServerV10;
 import fr.pederobien.vocal.common.impl.messages.v10.SetCommunicationProtocolVersionV10;
+import fr.pederobien.vocal.common.impl.messages.v10.SetPlayerMuteStatusV10;
 import fr.pederobien.vocal.common.impl.messages.v10.SetPlayerNameV10;
 import fr.pederobien.vocal.common.impl.messages.v10.UnregisterPlayerFromServerV10;
 import fr.pederobien.vocal.common.impl.messages.v10.model.PlayerInfo;
@@ -43,6 +44,7 @@ public class RequestManagerV10 extends RequestManager {
 		getRequests().put(VocalIdentifier.REGISTER_PLAYER_ON_SERVER, holder -> registerPlayerOnServer((RegisterPlayerOnServerV10) holder.getRequest()));
 		getRequests().put(VocalIdentifier.UNREGISTER_PLAYER_FROM_SERVER, holder -> unregisterPlayerFromServer((UnregisterPlayerFromServerV10) holder.getRequest()));
 		getRequests().put(VocalIdentifier.SET_PLAYER_NAME, holder -> setPlayerName((SetPlayerNameV10) holder.getRequest()));
+		getRequests().put(VocalIdentifier.SET_PLAYER_MUTE, holder -> setPlayerMute((SetPlayerMuteStatusV10) holder.getRequest()));
 	}
 
 	@Override
@@ -86,6 +88,11 @@ public class RequestManagerV10 extends RequestManager {
 	@Override
 	public IVocalMessage onPlayerNameChange(IVocalMainPlayer player, String newName) {
 		return create(getVersion(), VocalIdentifier.SET_PLAYER_NAME, player.getName(), newName);
+	}
+
+	@Override
+	public IVocalMessage onPlayerMuteChange(IVocalPlayer player, boolean newMute) {
+		return create(getVersion(), VocalIdentifier.SET_PLAYER_MUTE, player.getName(), newMute);
 	}
 
 	/**
@@ -137,6 +144,15 @@ public class RequestManagerV10 extends RequestManager {
 	 */
 	private void setPlayerName(SetPlayerNameV10 request) {
 		findPlayerAndUpdate(request.getOldName(), AbstractPlayer.class, player -> player.setName(request.getNewName()));
+	}
+
+	/**
+	 * Update the mute status of a player.
+	 * 
+	 * @param request The request sent by the remote in order to rename a player.
+	 */
+	private void setPlayerMute(SetPlayerMuteStatusV10 request) {
+		findPlayerAndUpdate(request.getPlayerName(), AbstractPlayer.class, player -> player.setMute(request.isMute()));
 	}
 
 	/**

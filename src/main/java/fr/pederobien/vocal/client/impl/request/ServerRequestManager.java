@@ -11,6 +11,7 @@ import fr.pederobien.vocal.client.impl.RequestReceivedHolder;
 import fr.pederobien.vocal.client.interfaces.IRequestManager;
 import fr.pederobien.vocal.client.interfaces.IServerRequestManager;
 import fr.pederobien.vocal.client.interfaces.IVocalMainPlayer;
+import fr.pederobien.vocal.client.interfaces.IVocalPlayer;
 import fr.pederobien.vocal.client.interfaces.IVocalServer;
 import fr.pederobien.vocal.common.interfaces.IVocalMessage;
 
@@ -80,6 +81,11 @@ public class ServerRequestManager implements IServerRequestManager {
 	@Override
 	public IVocalMessage onPlayerNameChange(float version, IVocalMainPlayer player, String newName) {
 		return findManagerAndReturn(version, manager -> manager.onPlayerNameChange(player, newName));
+	}
+
+	@Override
+	public IVocalMessage onPlayerMuteChange(float version, IVocalPlayer player, boolean newMute) {
+		return findManagerAndReturn(version, manager -> manager.onPlayerMuteChange(player, newMute));
 	}
 
 	/**

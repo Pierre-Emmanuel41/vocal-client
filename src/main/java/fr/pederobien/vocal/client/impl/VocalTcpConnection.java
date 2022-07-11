@@ -16,6 +16,7 @@ import fr.pederobien.utils.event.LogEvent;
 import fr.pederobien.vocal.client.event.VocalCommunicationProtocolVersionGetPostEvent;
 import fr.pederobien.vocal.client.event.VocalCommunicationProtocolVersionSetPostEvent;
 import fr.pederobien.vocal.client.event.VocalMainPlayerNameChangePreEvent;
+import fr.pederobien.vocal.client.event.VocalPlayerMuteStatusChangePreEvent;
 import fr.pederobien.vocal.client.event.VocalServerJoinPreEvent;
 import fr.pederobien.vocal.client.event.VocalServerLeavePreEvent;
 import fr.pederobien.vocal.client.interfaces.IResponse;
@@ -94,6 +95,15 @@ public class VocalTcpConnection implements IEventListener {
 			return;
 
 		send(getRequestManager().onPlayerNameChange(getVersion(), event.getPlayer(), event.getNewName()), args -> parse(args, event.getCallback(), null));
+	}
+
+	@EventHandler(priority = EventPriority.HIGHEST)
+	private void onPlayerMuteStatusChange(VocalPlayerMuteStatusChangePreEvent event) {
+		if (!event.getPlayer().getServer().equals(getServer()))
+			return;
+
+		if (event.getPlayer().equals(getServer().getMainPlayer()))
+			send(getRequestManager().onPlayerMuteChange(getVersion(), event.getPlayer(), event.getNewMute()), args -> parse(args, event.getCallback(), null));
 	}
 
 	@EventHandler

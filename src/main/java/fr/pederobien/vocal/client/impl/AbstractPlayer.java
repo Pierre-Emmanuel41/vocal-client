@@ -6,6 +6,8 @@ import java.util.concurrent.locks.ReentrantLock;
 import java.util.function.Consumer;
 
 import fr.pederobien.utils.event.EventManager;
+import fr.pederobien.vocal.client.event.VocalPlayerMuteStatusChangePostEvent;
+import fr.pederobien.vocal.client.event.VocalPlayerMuteStatusChangePreEvent;
 import fr.pederobien.vocal.client.event.VocalPlayerNameChangePostEvent;
 import fr.pederobien.vocal.client.interfaces.IResponse;
 import fr.pederobien.vocal.client.interfaces.IVocalPlayer;
@@ -52,6 +54,7 @@ public abstract class AbstractPlayer implements IVocalPlayer {
 		if (isMute() == isMute)
 			return;
 
+		EventManager.callEvent(new VocalPlayerMuteStatusChangePreEvent(this, isMute, callback));
 	}
 
 	@Override
@@ -79,9 +82,8 @@ public abstract class AbstractPlayer implements IVocalPlayer {
 	 * @param isMute The new player mute status.
 	 */
 	public void setMute(boolean isMute) {
-		setMute0(isMute);
-		// if (setMute0(isMute))
-		// EventManager.callEvent(new PlayerMuteStatusChangePostEvent(this, !isMute));
+		if (setMute0(isMute))
+			EventManager.callEvent(new VocalPlayerMuteStatusChangePostEvent(this, !isMute));
 	}
 
 	/**
