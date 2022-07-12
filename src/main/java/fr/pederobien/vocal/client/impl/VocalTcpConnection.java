@@ -104,6 +104,9 @@ public class VocalTcpConnection implements IEventListener {
 
 		if (event.getPlayer().equals(getServer().getMainPlayer()))
 			send(getRequestManager().onPlayerMuteChange(getVersion(), event.getPlayer(), event.getNewMute()), args -> parse(args, event.getCallback(), null));
+		else
+			send(getRequestManager().onPlayerMuteByChange(getVersion(), event.getPlayer(), getServer().getMainPlayer(), event.getNewMute()),
+					args -> parse(args, event.getCallback(), null));
 	}
 
 	@EventHandler

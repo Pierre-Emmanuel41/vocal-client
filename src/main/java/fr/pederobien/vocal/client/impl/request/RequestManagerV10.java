@@ -20,6 +20,7 @@ import fr.pederobien.vocal.common.impl.messages.v10.GetCommunicationProtocolVers
 import fr.pederobien.vocal.common.impl.messages.v10.GetServerConfigurationV10;
 import fr.pederobien.vocal.common.impl.messages.v10.RegisterPlayerOnServerV10;
 import fr.pederobien.vocal.common.impl.messages.v10.SetCommunicationProtocolVersionV10;
+import fr.pederobien.vocal.common.impl.messages.v10.SetPlayerMuteByStatusV10;
 import fr.pederobien.vocal.common.impl.messages.v10.SetPlayerMuteStatusV10;
 import fr.pederobien.vocal.common.impl.messages.v10.SetPlayerNameV10;
 import fr.pederobien.vocal.common.impl.messages.v10.UnregisterPlayerFromServerV10;
@@ -45,6 +46,7 @@ public class RequestManagerV10 extends RequestManager {
 		getRequests().put(VocalIdentifier.UNREGISTER_PLAYER_FROM_SERVER, holder -> unregisterPlayerFromServer((UnregisterPlayerFromServerV10) holder.getRequest()));
 		getRequests().put(VocalIdentifier.SET_PLAYER_NAME, holder -> setPlayerName((SetPlayerNameV10) holder.getRequest()));
 		getRequests().put(VocalIdentifier.SET_PLAYER_MUTE, holder -> setPlayerMute((SetPlayerMuteStatusV10) holder.getRequest()));
+		getRequests().put(VocalIdentifier.SET_PLAYER_MUTE_BY, holder -> setPlayerMuteBy((SetPlayerMuteByStatusV10) holder.getRequest()));
 	}
 
 	@Override
@@ -93,6 +95,11 @@ public class RequestManagerV10 extends RequestManager {
 	@Override
 	public IVocalMessage onPlayerMuteChange(IVocalPlayer player, boolean newMute) {
 		return create(getVersion(), VocalIdentifier.SET_PLAYER_MUTE, player.getName(), newMute);
+	}
+
+	@Override
+	public IVocalMessage onPlayerMuteByChange(IVocalPlayer target, IVocalPlayer source, boolean newMute) {
+		return create(getVersion(), VocalIdentifier.SET_PLAYER_MUTE_BY, target.getName(), source.getName(), newMute);
 	}
 
 	/**
@@ -153,6 +160,15 @@ public class RequestManagerV10 extends RequestManager {
 	 */
 	private void setPlayerMute(SetPlayerMuteStatusV10 request) {
 		findPlayerAndUpdate(request.getPlayerName(), AbstractPlayer.class, player -> player.setMute(request.isMute()));
+	}
+
+	/**
+	 * Update the mute status of a target player for a source player.
+	 * 
+	 * @param request The request sent by the remote in order to mute or unmute a target player for a source player.
+	 */
+	private void setPlayerMuteBy(SetPlayerMuteByStatusV10 request) {
+		findPlayerAndUpdate(request.getTarget(), VocalSecondaryPlayer.class, player -> player.setMuteByMainPlayer(request.isMute()));
 	}
 
 	/**

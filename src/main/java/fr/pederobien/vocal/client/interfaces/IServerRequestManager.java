@@ -102,4 +102,16 @@ public interface IServerRequestManager {
 	 * @return The message to send to the remote in order to update the mute status of a player.
 	 */
 	IVocalMessage onPlayerMuteChange(float version, IVocalPlayer player, boolean newMute);
+
+	/**
+	 * Creates a message in order to mute or unmute a player for another player.
+	 * 
+	 * @param version The protocol version to use to create a mumble message.
+	 * @param target  The player to mute or unmute for another player.
+	 * @param source  The player for which a player is mute or unmute.
+	 * @param newMute The mute status of the player.
+	 * 
+	 * @return The message to send to the remote in order to update the muteby status of a player.
+	 */
+	IVocalMessage onPlayerMuteByChange(float version, IVocalPlayer target, IVocalPlayer source, boolean newMute);
 }

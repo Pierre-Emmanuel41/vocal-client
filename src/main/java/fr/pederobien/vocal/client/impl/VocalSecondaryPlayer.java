@@ -2,6 +2,8 @@ package fr.pederobien.vocal.client.impl;
 
 import java.util.concurrent.atomic.AtomicBoolean;
 
+import fr.pederobien.utils.event.EventManager;
+import fr.pederobien.vocal.client.event.VocalSecondaryPlayerMuteByStatusChangedPostEvent;
 import fr.pederobien.vocal.client.interfaces.IVocalSecondaryPlayer;
 import fr.pederobien.vocal.client.interfaces.IVocalServer;
 
@@ -41,7 +43,8 @@ public class VocalSecondaryPlayer extends AbstractPlayer implements IVocalSecond
 		if (!setMuteByMainPlayer0(isMuteByMainPlayer))
 			return;
 
-		// EventManager.callEvent(new PlayerMuteStatusChangePostEvent(this, oldMute));
+		setMute0(isMuteByMainPlayer);
+		EventManager.callEvent(new VocalSecondaryPlayerMuteByStatusChangedPostEvent(this, !isMuteByMainPlayer));
 	}
 
 	/**
