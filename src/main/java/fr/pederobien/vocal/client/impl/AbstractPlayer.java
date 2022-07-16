@@ -6,6 +6,7 @@ import java.util.concurrent.locks.ReentrantLock;
 import java.util.function.Consumer;
 
 import fr.pederobien.utils.event.EventManager;
+import fr.pederobien.vocal.client.event.VocalPlayerDeafenStatusChangePostEvent;
 import fr.pederobien.vocal.client.event.VocalPlayerMuteStatusChangePostEvent;
 import fr.pederobien.vocal.client.event.VocalPlayerMuteStatusChangePreEvent;
 import fr.pederobien.vocal.client.event.VocalPlayerNameChangePostEvent;
@@ -92,9 +93,8 @@ public abstract class AbstractPlayer implements IVocalPlayer {
 	 * @param isDeafen The new player deafen status.
 	 */
 	public void setDeafen(boolean isDeafen) {
-		setDeafen0(isDeafen);
-		// if (setDeafen0(isDeafen))
-		// EventManager.callEvent(new PlayerDeafenStatusChangePostEvent(this, !isDeafen));
+		if (setDeafen0(isDeafen))
+			EventManager.callEvent(new VocalPlayerDeafenStatusChangePostEvent(this, !isDeafen));
 	}
 
 	/**

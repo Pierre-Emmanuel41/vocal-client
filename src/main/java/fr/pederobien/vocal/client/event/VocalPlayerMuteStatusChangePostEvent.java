@@ -11,7 +11,7 @@ public class VocalPlayerMuteStatusChangePostEvent extends VocalPlayerEvent {
 	 * Creates an event thrown when the mute status of a player has changed.
 	 * 
 	 * @param player  The player whose the mute status has changed.
-	 * @param oldMute The new player's mute status.
+	 * @param oldMute The old player's mute status.
 	 */
 	public VocalPlayerMuteStatusChangePostEvent(IVocalPlayer player, boolean oldMute) {
 		super(player);
@@ -19,7 +19,7 @@ public class VocalPlayerMuteStatusChangePostEvent extends VocalPlayerEvent {
 	}
 
 	/**
-	 * @return The new player's mute status.
+	 * @return The old player's mute status.
 	 */
 	public boolean getOldMute() {
 		return oldMute;

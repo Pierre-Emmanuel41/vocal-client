@@ -93,6 +93,11 @@ public class ServerRequestManager implements IServerRequestManager {
 		return findManagerAndReturn(version, manager -> manager.onPlayerMuteByChange(target, source, newMute));
 	}
 
+	@Override
+	public IVocalMessage onPlayerDeafenChange(float version, IVocalPlayer player, boolean newDeafen) {
+		return findManagerAndReturn(version, manager -> manager.onPlayerDeafenChange(player, newDeafen));
+	}
+
 	/**
 	 * Register the given request manager in this global request manager.
 	 * 

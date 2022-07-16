@@ -95,7 +95,7 @@ public interface IServerRequestManager {
 	/**
 	 * Creates a message in order to update the player mute status.
 	 * 
-	 * @param version The protocol version to use to create a mumble message.
+	 * @param version The protocol version to use to create a vocal message.
 	 * @param player  The player whose the mute status has changed.
 	 * @param newMute The new player's mute status.
 	 * 
@@ -106,7 +106,7 @@ public interface IServerRequestManager {
 	/**
 	 * Creates a message in order to mute or unmute a player for another player.
 	 * 
-	 * @param version The protocol version to use to create a mumble message.
+	 * @param version The protocol version to use to create a vocal message.
 	 * @param target  The player to mute or unmute for another player.
 	 * @param source  The player for which a player is mute or unmute.
 	 * @param newMute The mute status of the player.
@@ -114,4 +114,15 @@ public interface IServerRequestManager {
 	 * @return The message to send to the remote in order to update the muteby status of a player.
 	 */
 	IVocalMessage onPlayerMuteByChange(float version, IVocalPlayer target, IVocalPlayer source, boolean newMute);
+
+	/**
+	 * Creates a message in order to update the player deafen status.
+	 * 
+	 * @param version   The protocol version to use to create a vocal message.
+	 * @param player    The player whose the deafen status has changed.
+	 * @param newDeafen The new player's deafen status.
+	 * 
+	 * @return The message to send to the remote in order to update the deafen status of a player.
+	 */
+	IVocalMessage onPlayerDeafenChange(float version, IVocalPlayer player, boolean newDeafen);
 }

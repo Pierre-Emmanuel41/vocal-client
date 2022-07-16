@@ -20,6 +20,7 @@ import fr.pederobien.vocal.common.impl.messages.v10.GetCommunicationProtocolVers
 import fr.pederobien.vocal.common.impl.messages.v10.GetServerConfigurationV10;
 import fr.pederobien.vocal.common.impl.messages.v10.RegisterPlayerOnServerV10;
 import fr.pederobien.vocal.common.impl.messages.v10.SetCommunicationProtocolVersionV10;
+import fr.pederobien.vocal.common.impl.messages.v10.SetPlayerDeafenStatusV10;
 import fr.pederobien.vocal.common.impl.messages.v10.SetPlayerMuteByStatusV10;
 import fr.pederobien.vocal.common.impl.messages.v10.SetPlayerMuteStatusV10;
 import fr.pederobien.vocal.common.impl.messages.v10.SetPlayerNameV10;
@@ -47,6 +48,7 @@ public class RequestManagerV10 extends RequestManager {
 		getRequests().put(VocalIdentifier.SET_PLAYER_NAME, holder -> setPlayerName((SetPlayerNameV10) holder.getRequest()));
 		getRequests().put(VocalIdentifier.SET_PLAYER_MUTE, holder -> setPlayerMute((SetPlayerMuteStatusV10) holder.getRequest()));
 		getRequests().put(VocalIdentifier.SET_PLAYER_MUTE_BY, holder -> setPlayerMuteBy((SetPlayerMuteByStatusV10) holder.getRequest()));
+		getRequests().put(VocalIdentifier.SET_PLAYER_DEAFEN, holder -> setPlayerDeafen((SetPlayerDeafenStatusV10) holder.getRequest()));
 	}
 
 	@Override
@@ -100,6 +102,11 @@ public class RequestManagerV10 extends RequestManager {
 	@Override
 	public IVocalMessage onPlayerMuteByChange(IVocalPlayer target, IVocalPlayer source, boolean newMute) {
 		return create(getVersion(), VocalIdentifier.SET_PLAYER_MUTE_BY, target.getName(), source.getName(), newMute);
+	}
+
+	@Override
+	public IVocalMessage onPlayerDeafenChange(IVocalPlayer player, boolean newDeafen) {
+		return create(getVersion(), VocalIdentifier.SET_PLAYER_DEAFEN, player.getName(), newDeafen);
 	}
 
 	/**
@@ -156,7 +163,7 @@ public class RequestManagerV10 extends RequestManager {
 	/**
 	 * Update the mute status of a player.
 	 * 
-	 * @param request The request sent by the remote in order to rename a player.
+	 * @param request The request sent by the remote in order to set the mute status of a player.
 	 */
 	private void setPlayerMute(SetPlayerMuteStatusV10 request) {
 		findPlayerAndUpdate(request.getPlayerName(), AbstractPlayer.class, player -> player.setMute(request.isMute()));
@@ -169,6 +176,15 @@ public class RequestManagerV10 extends RequestManager {
 	 */
 	private void setPlayerMuteBy(SetPlayerMuteByStatusV10 request) {
 		findPlayerAndUpdate(request.getTarget(), VocalSecondaryPlayer.class, player -> player.setMuteByMainPlayer(request.isMute()));
+	}
+
+	/**
+	 * Update the deafen status of a player.
+	 * 
+	 * @param request The request sent by the remote in order to set the deafen status of a player.
+	 */
+	private void setPlayerDeafen(SetPlayerDeafenStatusV10 request) {
+		findPlayerAndUpdate(request.getPlayerName(), AbstractPlayer.class, player -> player.setDeafen(request.isDeafen()));
 	}
 
 	/**

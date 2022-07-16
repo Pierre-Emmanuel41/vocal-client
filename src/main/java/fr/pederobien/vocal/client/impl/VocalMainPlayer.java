@@ -3,6 +3,7 @@ package fr.pederobien.vocal.client.impl;
 import java.util.function.Consumer;
 
 import fr.pederobien.utils.event.EventManager;
+import fr.pederobien.vocal.client.event.VocalMainPlayerDeafenStatusChangePreEvent;
 import fr.pederobien.vocal.client.event.VocalMainPlayerNameChangePreEvent;
 import fr.pederobien.vocal.client.interfaces.IResponse;
 import fr.pederobien.vocal.client.interfaces.IVocalMainPlayer;
@@ -30,6 +31,9 @@ public class VocalMainPlayer extends AbstractPlayer implements IVocalMainPlayer 
 
 	@Override
 	public void setDeafen(boolean isDeafen, Consumer<IResponse> callback) {
+		if (isDeafen() == isDeafen)
+			return;
 
+		EventManager.callEvent(new VocalMainPlayerDeafenStatusChangePreEvent(this, isDeafen, callback));
 	}
 }
