@@ -138,9 +138,6 @@ public class VocalServer implements IVocalServer, IEventListener {
 
 	@Override
 	public void join(String name, Consumer<IResponse> callback) {
-		if (!isJoined.compareAndSet(false, true))
-			return;
-
 		Consumer<IResponse> update = response -> {
 			if (!response.hasFailed()) {
 				((VocalMainPlayer) mainPlayer).setName(name);
@@ -237,7 +234,7 @@ public class VocalServer implements IVocalServer, IEventListener {
 			lock.unlock();
 		}
 
-		if (connectionLost)
+		if (connectionLost && isJoined())
 			join(mainPlayer.getName(), response -> connectionLost = false);
 	}
 
@@ -286,7 +283,6 @@ public class VocalServer implements IVocalServer, IEventListener {
 			return;
 
 		connectionLost = true;
-		isJoined.set(false);
 		setReachable(false);
 		((VocalServerPlayerList) getPlayers()).clear();
 	}
