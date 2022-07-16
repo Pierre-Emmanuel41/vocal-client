@@ -87,7 +87,10 @@ public class VocalTcpConnection implements IEventListener {
 		if (!event.getServer().equals(getServer()))
 			return;
 
-		send(getRequestManager().onServerLeave(getVersion()), args -> parse(args, event.getCallback(), null));
+		if (!getServer().isReachable())
+			event.getCallback().accept(new Response(VocalErrorCode.NONE));
+		else
+			send(getRequestManager().onServerLeave(getVersion()), args -> parse(args, event.getCallback(), null));
 	}
 
 	@EventHandler(priority = EventPriority.HIGHEST)

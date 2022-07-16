@@ -171,7 +171,6 @@ public class VocalServer implements IVocalServer, IEventListener {
 	@Override
 	public void leave(Consumer<IResponse> callback) {
 		if (!isJoined.compareAndSet(true, false))
-
 			return;
 
 		Consumer<IResponse> update = response -> {
@@ -179,6 +178,7 @@ public class VocalServer implements IVocalServer, IEventListener {
 				EventManager.callEvent(new VocalServerLeavePostEvent(this));
 			callback.accept(response);
 		};
+
 		EventManager.callEvent(new VocalServerLeavePreEvent(this, update));
 	}
 
