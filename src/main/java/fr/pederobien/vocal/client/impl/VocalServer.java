@@ -291,15 +291,10 @@ public class VocalServer implements IVocalServer, IEventListener {
 	 * Set the the new reachable status of the remote.
 	 * 
 	 * @param isReachable True if the remote is reachable, false otherwise.
-	 * 
-	 * @return True if the reachable status has changed, false otherwise.
 	 */
-	private boolean setReachable(boolean isReachable) {
-		boolean changed = this.isReachable.compareAndSet(!isReachable, isReachable);
-		if (changed)
-			EventManager.callEvent(new ServerReachableStatusChangeEvent(this, isReachable));
-
-		return changed;
+	private void setReachable(boolean isReachable) {
+		if (this.isReachable.compareAndSet(!isReachable, isReachable))
+			EventManager.callEvent(new ServerReachableStatusChangeEvent(this, !isReachable));
 	}
 
 	private void openConnection() {
@@ -311,7 +306,7 @@ public class VocalServer implements IVocalServer, IEventListener {
 	}
 
 	private void closeConnection() {
-		if (!setReachable(false))
+		if (connection.getTcpConnection().isDisposed())
 			return;
 
 		connection.getTcpConnection().dispose();
