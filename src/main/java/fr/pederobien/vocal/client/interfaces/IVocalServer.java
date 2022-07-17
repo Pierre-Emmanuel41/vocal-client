@@ -3,6 +3,8 @@ package fr.pederobien.vocal.client.interfaces;
 import java.net.InetSocketAddress;
 import java.util.function.Consumer;
 
+import fr.pederobien.messenger.interfaces.IResponse;
+
 public interface IVocalServer {
 
 	/**

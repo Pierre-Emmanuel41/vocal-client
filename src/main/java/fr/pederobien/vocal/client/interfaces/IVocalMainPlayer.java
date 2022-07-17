@@ -2,6 +2,8 @@ package fr.pederobien.vocal.client.interfaces;
 
 import java.util.function.Consumer;
 
+import fr.pederobien.messenger.interfaces.IResponse;
+
 public interface IVocalMainPlayer extends IVocalPlayer {
 
 	/**

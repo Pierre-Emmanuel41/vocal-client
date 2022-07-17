@@ -3,8 +3,8 @@ package fr.pederobien.vocal.client.event;
 import java.util.StringJoiner;
 import java.util.function.Consumer;
 
+import fr.pederobien.messenger.interfaces.IResponse;
 import fr.pederobien.utils.ICancellable;
-import fr.pederobien.vocal.client.interfaces.IResponse;
 import fr.pederobien.vocal.client.interfaces.IVocalServer;
 
 public class VocalServerLeavePreEvent extends VocalServerEvent implements ICancellable {

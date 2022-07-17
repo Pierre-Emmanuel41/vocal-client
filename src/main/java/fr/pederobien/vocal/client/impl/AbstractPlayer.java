@@ -5,12 +5,12 @@ import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 import java.util.function.Consumer;
 
+import fr.pederobien.messenger.interfaces.IResponse;
 import fr.pederobien.utils.event.EventManager;
 import fr.pederobien.vocal.client.event.VocalPlayerDeafenStatusChangePostEvent;
 import fr.pederobien.vocal.client.event.VocalPlayerMuteStatusChangePostEvent;
 import fr.pederobien.vocal.client.event.VocalPlayerMuteStatusChangePreEvent;
 import fr.pederobien.vocal.client.event.VocalPlayerNameChangePostEvent;
-import fr.pederobien.vocal.client.interfaces.IResponse;
 import fr.pederobien.vocal.client.interfaces.IVocalPlayer;
 import fr.pederobien.vocal.client.interfaces.IVocalServer;
 

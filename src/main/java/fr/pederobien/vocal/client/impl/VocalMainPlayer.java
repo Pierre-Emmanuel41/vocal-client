@@ -2,6 +2,7 @@ package fr.pederobien.vocal.client.impl;
 
 import java.util.function.Consumer;
 
+import fr.pederobien.messenger.interfaces.IResponse;
 import fr.pederobien.sound.impl.SoundResourcesProvider;
 import fr.pederobien.utils.event.EventHandler;
 import fr.pederobien.utils.event.EventManager;
@@ -10,7 +11,6 @@ import fr.pederobien.vocal.client.event.VocalMainPlayerDeafenStatusChangePreEven
 import fr.pederobien.vocal.client.event.VocalMainPlayerNameChangePreEvent;
 import fr.pederobien.vocal.client.event.VocalPlayerDeafenStatusChangePostEvent;
 import fr.pederobien.vocal.client.event.VocalPlayerMuteStatusChangePostEvent;
-import fr.pederobien.vocal.client.interfaces.IResponse;
 import fr.pederobien.vocal.client.interfaces.IVocalMainPlayer;
 import fr.pederobien.vocal.client.interfaces.IVocalServer;
 
