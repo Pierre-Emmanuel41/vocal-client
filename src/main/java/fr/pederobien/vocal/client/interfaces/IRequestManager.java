@@ -111,4 +111,14 @@ public interface IRequestManager {
 	 * @return The message to send to the remote in order to update the deafen status of a player.
 	 */
 	IVocalMessage onPlayerDeafenChange(IVocalPlayer player, boolean newDeafen);
+
+	/**
+	 * Creates a message in order to send an audio sample to the vocal server.
+	 * 
+	 * @param player The speaking player.
+	 * @param data   The bytes array that represents an audio sample to send.
+	 * 
+	 * @return The message to send to send an audio sample to the vocal server.
+	 */
+	IVocalMessage onPlayerSpeak(IVocalPlayer player, byte[] data);
 }

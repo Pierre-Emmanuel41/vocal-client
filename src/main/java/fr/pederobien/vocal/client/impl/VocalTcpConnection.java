@@ -18,20 +18,18 @@ import fr.pederobien.vocal.client.event.VocalCommunicationProtocolVersionSetPost
 import fr.pederobien.vocal.client.event.VocalMainPlayerDeafenStatusChangePreEvent;
 import fr.pederobien.vocal.client.event.VocalMainPlayerNameChangePreEvent;
 import fr.pederobien.vocal.client.event.VocalPlayerMuteStatusChangePreEvent;
+import fr.pederobien.vocal.client.event.VocalPlayerSpeakPreEvent;
 import fr.pederobien.vocal.client.event.VocalServerJoinPreEvent;
 import fr.pederobien.vocal.client.event.VocalServerLeavePreEvent;
 import fr.pederobien.vocal.client.interfaces.IResponse;
-import fr.pederobien.vocal.client.interfaces.IServerRequestManager;
 import fr.pederobien.vocal.client.interfaces.IVocalServer;
 import fr.pederobien.vocal.common.impl.VocalCallbackMessage;
 import fr.pederobien.vocal.common.impl.VocalErrorCode;
 import fr.pederobien.vocal.common.impl.VocalMessageExtractor;
 import fr.pederobien.vocal.common.interfaces.IVocalMessage;
 
-public class VocalTcpConnection implements IEventListener {
-	private IVocalServer server;
+public class VocalTcpConnection extends VocalConnection implements IEventListener {
 	private ITcpConnection connection;
-	private float version;
 
 	/**
 	 * Creates a TCP connection associated to the given server.
@@ -39,12 +37,16 @@ public class VocalTcpConnection implements IEventListener {
 	 * @param server The server that contains the IP address and the TCP port number.
 	 */
 	public VocalTcpConnection(IVocalServer server) {
-		this.server = server;
+		super(server);
 		connection = new TcpClientImpl(server.getAddress().getAddress().getHostAddress(), server.getAddress().getPort(), new VocalMessageExtractor(), true);
-		version = -1;
-
-		System.out.println("Creating VocalTcpConnection");
 		EventManager.registerListener(this);
+	}
+
+	/**
+	 * @return The connection with the remote.
+	 */
+	public ITcpConnection getTcpConnection() {
+		return connection;
 	}
 
 	/**
@@ -121,17 +123,22 @@ public class VocalTcpConnection implements IEventListener {
 		send(getRequestManager().onPlayerDeafenChange(getVersion(), event.getPlayer(), event.getNewDeafen()), args -> parse(args, event.getCallback(), null));
 	}
 
+	@EventHandler(priority = EventPriority.HIGHEST)
+	private void onPlayerSpeak(VocalPlayerSpeakPreEvent event) {
+
+	}
+
 	@EventHandler
 	private void onUnexpectedDataReceive(UnexpectedDataReceivedEvent event) {
 		if (!event.getConnection().equals(getTcpConnection()))
 			return;
 
-		IVocalMessage request = VocalClientMessageFactory.parse(event.getAnswer());
+		IVocalMessage request = VocalClientMessageFactory.parse(event.getBuffer());
 		if (getVersion() != -1 && getVersion() != request.getHeader().getVersion()) {
 			String format = "Receiving message with unexpected getVersion() of the communication protocol, expected=v%s, actual=v%s";
 			EventManager.callEvent(new LogEvent(format, getVersion(), request.getHeader().getVersion()));
 		} else
-			getServer().getRequestManager().apply(new RequestReceivedHolder(VocalClientMessageFactory.parse(event.getAnswer()), this));
+			getServer().getRequestManager().apply(new RequestReceivedHolder(VocalClientMessageFactory.parse(event.getBuffer()), this));
 	}
 
 	@EventHandler
@@ -151,50 +158,16 @@ public class VocalTcpConnection implements IEventListener {
 	}
 
 	/**
-	 * @return The connection with the remote.
-	 */
-	public ITcpConnection getTcpConnection() {
-		return connection;
-	}
-
-	/**
-	 * @return The server associated to this mumble connection.
-	 */
-	private IVocalServer getServer() {
-		return server;
-	}
-
-	/**
-	 * @return The version of the communication protocol.
-	 */
-	private float getVersion() {
-		return version;
-	}
-
-	/**
-	 * Set the version of the communication protocol.
-	 * 
-	 * @param version The new version to use.
-	 */
-	private void setVersion(float version) {
-		this.version = version;
-	}
-
-	/**
 	 * Send the given message to the remote.
 	 * 
 	 * @param message  The message to send to the remote.
 	 * @param callback The callback to run when a response has been received before the timeout.
 	 */
 	private void send(IVocalMessage message, Consumer<ResponseCallbackArgs> callback) {
-		if (connection == null || connection.isDisposed())
+		if (getTcpConnection() == null || getTcpConnection().isDisposed())
 			return;
 
-		connection.send(new VocalCallbackMessage(message, callback));
-	}
-
-	private IServerRequestManager getRequestManager() {
-		return getServer().getRequestManager();
+		getTcpConnection().send(new VocalCallbackMessage(message, callback));
 	}
 
 	/**

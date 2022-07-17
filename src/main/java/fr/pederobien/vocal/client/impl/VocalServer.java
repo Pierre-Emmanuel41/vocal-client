@@ -11,12 +11,17 @@ import java.util.function.Consumer;
 import fr.pederobien.communication.event.ConnectionCompleteEvent;
 import fr.pederobien.communication.event.ConnectionDisposedEvent;
 import fr.pederobien.communication.event.ConnectionLostEvent;
+import fr.pederobien.sound.event.MicrophoneDataEncodedEvent;
+import fr.pederobien.sound.impl.AudioPacket;
+import fr.pederobien.sound.impl.SoundResourcesProvider;
 import fr.pederobien.utils.event.EventHandler;
 import fr.pederobien.utils.event.EventManager;
 import fr.pederobien.utils.event.IEventListener;
 import fr.pederobien.utils.event.LogEvent;
 import fr.pederobien.vocal.client.event.ServerReachableStatusChangeEvent;
 import fr.pederobien.vocal.client.event.VocalCommunicationProtocolVersionSetPostEvent;
+import fr.pederobien.vocal.client.event.VocalPlayerSpeakPostEvent;
+import fr.pederobien.vocal.client.event.VocalPlayerSpeakPreEvent;
 import fr.pederobien.vocal.client.event.VocalServerAddressChangePostEvent;
 import fr.pederobien.vocal.client.event.VocalServerAddressChangePreEvent;
 import fr.pederobien.vocal.client.event.VocalServerJoinPostEvent;
@@ -41,7 +46,8 @@ public class VocalServer implements IVocalServer, IEventListener {
 	private IServerRequestManager serverRequestManager;
 	private IVocalServerPlayerList players;
 	private IVocalMainPlayer mainPlayer;
-	private VocalTcpConnection connection;
+	private VocalTcpConnection tcpConnection;
+	private VocalUdpConnection udpConnection;
 	private Lock lock;
 	private Condition serverConfiguration, communicationProtocolVersion;
 	private boolean connectionLost;
@@ -97,7 +103,7 @@ public class VocalServer implements IVocalServer, IEventListener {
 
 			Runnable update = () -> {
 				this.address = address;
-				if (connection != null && !connection.getTcpConnection().isDisposed())
+				if (tcpConnection != null && !tcpConnection.getTcpConnection().isDisposed())
 					closeConnection();
 				openConnection();
 			};
@@ -125,7 +131,8 @@ public class VocalServer implements IVocalServer, IEventListener {
 			openConnection();
 
 			if (!communicationProtocolVersion.await(5000, TimeUnit.MILLISECONDS)) {
-				connection.getTcpConnection().dispose();
+				tcpConnection.getTcpConnection().dispose();
+				udpConnection.getUdpConnection().dispose();
 				throw new IllegalStateException("Time out on establishing the version of the communication protocol.");
 			}
 		} catch (InterruptedException e) {
@@ -151,11 +158,11 @@ public class VocalServer implements IVocalServer, IEventListener {
 		try {
 			if (!serverConfiguration.await(5000, TimeUnit.MILLISECONDS)) {
 				isJoined.set(false);
-				connection.getTcpConnection().dispose();
 				throw new IllegalStateException("Time out on server configuration request.");
 			}
 
 			isJoined.set(true);
+			udpConnection.getUdpConnection().connect();
 		} catch (InterruptedException e) {
 			// Do nothing
 		} finally {
@@ -174,8 +181,10 @@ public class VocalServer implements IVocalServer, IEventListener {
 			return;
 
 		Consumer<IResponse> update = response -> {
-			if (!response.hasFailed())
+			if (!response.hasFailed()) {
+				udpConnection.getUdpConnection().disconnect();
 				EventManager.callEvent(new VocalServerLeavePostEvent(this));
+			}
 			callback.accept(response);
 		};
 
@@ -216,7 +225,7 @@ public class VocalServer implements IVocalServer, IEventListener {
 
 	@EventHandler
 	private void onConnectionComplete(ConnectionCompleteEvent event) {
-		if (connection == null || !event.getConnection().equals(connection.getTcpConnection()))
+		if (tcpConnection == null || !event.getConnection().equals(tcpConnection.getTcpConnection()))
 			return;
 
 		setReachable(true);
@@ -224,7 +233,7 @@ public class VocalServer implements IVocalServer, IEventListener {
 
 	@EventHandler
 	private void onSetCommunicationProtocolVersion(VocalCommunicationProtocolVersionSetPostEvent event) {
-		if (connection == null || !event.getConnection().equals(connection))
+		if (tcpConnection == null || !event.getConnection().equals(tcpConnection))
 			return;
 
 		lock.lock();
@@ -256,7 +265,42 @@ public class VocalServer implements IVocalServer, IEventListener {
 			}
 		};
 
-		connection.getServerConfiguration(callback);
+		tcpConnection.getServerConfiguration(callback);
+
+		SoundResourcesProvider.getMixer().clear();
+
+		if (!getMainPlayer().isDeafen())
+			SoundResourcesProvider.getSpeakers().start();
+		if (!getMainPlayer().isMute())
+			SoundResourcesProvider.getMicrophone().start();
+	}
+
+	@EventHandler
+	private void onMicrophoneDataEncoded(MicrophoneDataEncodedEvent event) {
+		EventManager.callEvent(new VocalPlayerSpeakPreEvent(getMainPlayer(), event.getEncoded()));
+	}
+
+	@EventHandler
+	private void onPlayerSpeak(VocalPlayerSpeakPostEvent event) {
+		if (!event.getPlayer().getServer().equals(this))
+			return;
+
+		// Player's name
+		String name = event.getPlayer().getName();
+
+		// Audio sample
+		byte[] data = event.getData();
+
+		// Global volume
+		double global = event.getVolume().getGlobal();
+
+		// Left volume
+		double left = event.getVolume().getLeft();
+
+		// Right volume
+		double right = event.getVolume().getLeft();
+
+		SoundResourcesProvider.getMixer().put(new AudioPacket(name, data, global, right, left, true, true));
 	}
 
 	@EventHandler
@@ -265,25 +309,31 @@ public class VocalServer implements IVocalServer, IEventListener {
 			return;
 
 		isJoined.set(false);
+		SoundResourcesProvider.getSpeakers().stop();
+		SoundResourcesProvider.getMicrophone().stop();
 		((VocalServerPlayerList) getPlayers()).clear();
 	}
 
 	@EventHandler
 	private void onConnectionDisposed(ConnectionDisposedEvent event) {
-		if (connection == null || !event.getConnection().equals(connection.getTcpConnection()))
+		if (tcpConnection == null || !event.getConnection().equals(tcpConnection.getTcpConnection()))
 			return;
 
 		setReachable(false);
+		SoundResourcesProvider.getSpeakers().stop();
+		SoundResourcesProvider.getMicrophone().stop();
 		EventManager.unregisterListener(this);
 	}
 
 	@EventHandler
 	private void onConnectionLost(ConnectionLostEvent event) {
-		if (connection == null || !event.getConnection().equals(connection.getTcpConnection()))
+		if (tcpConnection == null || !event.getConnection().equals(tcpConnection.getTcpConnection()))
 			return;
 
-		connectionLost = true;
 		setReachable(false);
+		connectionLost = true;
+		SoundResourcesProvider.getSpeakers().stop();
+		SoundResourcesProvider.getMicrophone().stop();
 		((VocalServerPlayerList) getPlayers()).clear();
 	}
 
@@ -301,14 +351,16 @@ public class VocalServer implements IVocalServer, IEventListener {
 		if (isReachable())
 			return;
 
-		connection = new VocalTcpConnection(this);
-		connection.getTcpConnection().connect();
+		tcpConnection = new VocalTcpConnection(this);
+		udpConnection = new VocalUdpConnection(this);
+		tcpConnection.getTcpConnection().connect();
 	}
 
 	private void closeConnection() {
-		if (connection.getTcpConnection().isDisposed())
+		if (tcpConnection.getTcpConnection().isDisposed())
 			return;
 
-		connection.getTcpConnection().dispose();
+		tcpConnection.getTcpConnection().dispose();
+		udpConnection.getUdpConnection().dispose();
 	}
 }

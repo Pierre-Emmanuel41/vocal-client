@@ -4,7 +4,7 @@ import fr.pederobien.vocal.common.interfaces.IVocalMessage;
 
 public class RequestReceivedHolder {
 	private IVocalMessage request;
-	private VocalTcpConnection connection;
+	private VocalConnection connection;
 
 	/**
 	 * Creates a holder to gather the request received from the remote and the connection that received the request.
@@ -12,7 +12,7 @@ public class RequestReceivedHolder {
 	 * @param request    The request sent by the remote.
 	 * @param connection The connection that has received the request.
 	 */
-	public RequestReceivedHolder(IVocalMessage request, VocalTcpConnection connection) {
+	public RequestReceivedHolder(IVocalMessage request, VocalConnection connection) {
 		this.request = request;
 		this.connection = connection;
 	}
@@ -27,7 +27,7 @@ public class RequestReceivedHolder {
 	/**
 	 * @return The connection that has received the request.
 	 */
-	public VocalTcpConnection getConnection() {
+	public VocalConnection getConnection() {
 		return connection;
 	}
 }

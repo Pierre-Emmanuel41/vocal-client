@@ -7,17 +7,20 @@ import java.util.function.Consumer;
 import fr.pederobien.utils.event.EventManager;
 import fr.pederobien.vocal.client.event.VocalCommunicationProtocolVersionGetPostEvent;
 import fr.pederobien.vocal.client.event.VocalCommunicationProtocolVersionSetPostEvent;
+import fr.pederobien.vocal.client.event.VocalPlayerSpeakPostEvent;
 import fr.pederobien.vocal.client.exceptions.PlayerAlreadyRegisteredException;
 import fr.pederobien.vocal.client.impl.AbstractPlayer;
 import fr.pederobien.vocal.client.impl.RequestReceivedHolder;
 import fr.pederobien.vocal.client.impl.VocalSecondaryPlayer;
 import fr.pederobien.vocal.client.impl.VocalServerPlayerList;
+import fr.pederobien.vocal.client.impl.VocalTcpConnection;
 import fr.pederobien.vocal.client.interfaces.IVocalMainPlayer;
 import fr.pederobien.vocal.client.interfaces.IVocalPlayer;
 import fr.pederobien.vocal.client.interfaces.IVocalServer;
 import fr.pederobien.vocal.common.impl.VocalIdentifier;
 import fr.pederobien.vocal.common.impl.messages.v10.GetCommunicationProtocolVersionsV10;
 import fr.pederobien.vocal.common.impl.messages.v10.GetServerConfigurationV10;
+import fr.pederobien.vocal.common.impl.messages.v10.PlayerSpeakSetMessageV10;
 import fr.pederobien.vocal.common.impl.messages.v10.RegisterPlayerOnServerV10;
 import fr.pederobien.vocal.common.impl.messages.v10.SetCommunicationProtocolVersionV10;
 import fr.pederobien.vocal.common.impl.messages.v10.SetPlayerDeafenStatusV10;
@@ -49,6 +52,9 @@ public class RequestManagerV10 extends RequestManager {
 		getRequests().put(VocalIdentifier.SET_PLAYER_MUTE, holder -> setPlayerMute((SetPlayerMuteStatusV10) holder.getRequest()));
 		getRequests().put(VocalIdentifier.SET_PLAYER_MUTE_BY, holder -> setPlayerMuteBy((SetPlayerMuteByStatusV10) holder.getRequest()));
 		getRequests().put(VocalIdentifier.SET_PLAYER_DEAFEN, holder -> setPlayerDeafen((SetPlayerDeafenStatusV10) holder.getRequest()));
+
+		// Audio messages
+		getRequests().put(VocalIdentifier.PLAYER_SPEAK_SET, holder -> setPlayerSpeak((PlayerSpeakSetMessageV10) holder.getRequest()));
 	}
 
 	@Override
@@ -109,6 +115,11 @@ public class RequestManagerV10 extends RequestManager {
 		return create(getVersion(), VocalIdentifier.SET_PLAYER_DEAFEN, player.getName(), newDeafen);
 	}
 
+	@Override
+	public IVocalMessage onPlayerSpeak(IVocalPlayer player, byte[] data) {
+		return create(getVersion(), VocalIdentifier.PLAYER_SPEAK_INFO, player.getName(), data);
+	}
+
 	/**
 	 * Throw a {@link CommunicationProtocolVersionGetEvent} in order to fill the supported versions of the communication protocol.
 	 * 
@@ -125,8 +136,12 @@ public class RequestManagerV10 extends RequestManager {
 	 * @param holder The holder that gather the request received by the remote and the connection that has received the request.
 	 */
 	private void onSetCommunicationProtocolVersion(RequestReceivedHolder holder) {
+		if (!(holder.getConnection() instanceof VocalTcpConnection))
+			return;
+
+		VocalTcpConnection connection = (VocalTcpConnection) holder.getConnection();
 		SetCommunicationProtocolVersionV10 request = (SetCommunicationProtocolVersionV10) holder.getRequest();
-		EventManager.callEvent(new VocalCommunicationProtocolVersionSetPostEvent(getServer(), request, request.getVersion(), holder.getConnection()));
+		EventManager.callEvent(new VocalCommunicationProtocolVersionSetPostEvent(getServer(), request, request.getVersion(), connection));
 	}
 
 	/**
@@ -185,6 +200,15 @@ public class RequestManagerV10 extends RequestManager {
 	 */
 	private void setPlayerDeafen(SetPlayerDeafenStatusV10 request) {
 		findPlayerAndUpdate(request.getPlayerName(), AbstractPlayer.class, player -> player.setDeafen(request.isDeafen()));
+	}
+
+	/**
+	 * Throw a VocalPlayerSpeakEvent.
+	 * 
+	 * @param request The request sent by the remote in order to player an audio sample.
+	 */
+	private void setPlayerSpeak(PlayerSpeakSetMessageV10 request) {
+		EventManager.callEvent(new VocalPlayerSpeakPostEvent(getPlayer(request.getPlayerName()).get(), request.getData(), request.getVolume()));
 	}
 
 	/**
