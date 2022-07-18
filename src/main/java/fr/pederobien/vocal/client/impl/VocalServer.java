@@ -19,7 +19,7 @@ import fr.pederobien.utils.event.EventHandler;
 import fr.pederobien.utils.event.EventManager;
 import fr.pederobien.utils.event.IEventListener;
 import fr.pederobien.utils.event.LogEvent;
-import fr.pederobien.vocal.client.event.ServerReachableStatusChangeEvent;
+import fr.pederobien.vocal.client.event.VocalServerReachableStatusChangeEvent;
 import fr.pederobien.vocal.client.event.VocalCommunicationProtocolVersionSetPostEvent;
 import fr.pederobien.vocal.client.event.VocalPlayerSpeakPostEvent;
 import fr.pederobien.vocal.client.event.VocalPlayerSpeakPreEvent;
@@ -350,7 +350,7 @@ public class VocalServer implements IVocalServer, IEventListener {
 	 */
 	private void setReachable(boolean isReachable) {
 		if (this.isReachable.compareAndSet(!isReachable, isReachable))
-			EventManager.callEvent(new ServerReachableStatusChangeEvent(this, !isReachable));
+			EventManager.callEvent(new VocalServerReachableStatusChangeEvent(this, !isReachable));
 	}
 
 	private void openConnection() {

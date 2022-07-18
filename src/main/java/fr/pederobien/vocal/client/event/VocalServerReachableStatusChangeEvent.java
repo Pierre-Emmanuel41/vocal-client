@@ -4,7 +4,7 @@ import java.util.StringJoiner;
 
 import fr.pederobien.vocal.client.interfaces.IVocalServer;
 
-public class ServerReachableStatusChangeEvent extends VocalServerEvent {
+public class VocalServerReachableStatusChangeEvent extends VocalServerEvent {
 	private boolean oldReachable;
 
 	/**
@@ -13,7 +13,7 @@ public class ServerReachableStatusChangeEvent extends VocalServerEvent {
 	 * @param server       The server whose the reachable status has changed.
 	 * @param oldReachable The old reachable status.
 	 */
-	public ServerReachableStatusChangeEvent(IVocalServer server, boolean oldReachable) {
+	public VocalServerReachableStatusChangeEvent(IVocalServer server, boolean oldReachable) {
 		super(server);
 		this.oldReachable = oldReachable;
 	}
@@ -27,7 +27,7 @@ public class ServerReachableStatusChangeEvent extends VocalServerEvent {
 
 	@Override
 	public String toString() {
-		StringJoiner joiner = new StringJoiner(",", "{", "}");
+		StringJoiner joiner = new StringJoiner(", ", "{", "}");
 		joiner.add("server=" + getServer());
 		joiner.add("currentReachable=" + getServer().isReachable());
 		joiner.add("oldReachable=" + getOldReachable());
