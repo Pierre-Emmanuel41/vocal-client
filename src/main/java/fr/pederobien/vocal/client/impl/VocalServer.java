@@ -19,7 +19,6 @@ import fr.pederobien.utils.event.EventHandler;
 import fr.pederobien.utils.event.EventManager;
 import fr.pederobien.utils.event.IEventListener;
 import fr.pederobien.utils.event.LogEvent;
-import fr.pederobien.vocal.client.event.VocalServerReachableStatusChangeEvent;
 import fr.pederobien.vocal.client.event.VocalCommunicationProtocolVersionSetPostEvent;
 import fr.pederobien.vocal.client.event.VocalPlayerSpeakPostEvent;
 import fr.pederobien.vocal.client.event.VocalPlayerSpeakPreEvent;
@@ -31,6 +30,7 @@ import fr.pederobien.vocal.client.event.VocalServerLeavePostEvent;
 import fr.pederobien.vocal.client.event.VocalServerLeavePreEvent;
 import fr.pederobien.vocal.client.event.VocalServerNameChangePostEvent;
 import fr.pederobien.vocal.client.event.VocalServerNameChangePreEvent;
+import fr.pederobien.vocal.client.event.VocalServerReachableStatusChangeEvent;
 import fr.pederobien.vocal.client.impl.request.ServerRequestManager;
 import fr.pederobien.vocal.client.interfaces.IServerRequestManager;
 import fr.pederobien.vocal.client.interfaces.IVocalMainPlayer;
@@ -71,8 +71,6 @@ public class VocalServer implements IVocalServer, IEventListener {
 		lock = new ReentrantLock(true);
 		serverConfiguration = lock.newCondition();
 		communicationProtocolVersion = lock.newCondition();
-
-		EventManager.registerListener(this);
 	}
 
 	@Override
@@ -126,6 +124,8 @@ public class VocalServer implements IVocalServer, IEventListener {
 
 		if (isReachable())
 			return;
+
+		EventManager.registerListener(this);
 
 		lock.lock();
 		try {
