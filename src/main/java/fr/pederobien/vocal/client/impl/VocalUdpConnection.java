@@ -63,7 +63,7 @@ public class VocalUdpConnection extends VocalConnection implements IEventListene
 	 * @param callback The callback to run when a response has been received before the timeout.
 	 */
 	private void send(IVocalMessage message) {
-		if (getUdpConnection() == null || getUdpConnection().isDisposed())
+		if (message == null || getUdpConnection() == null || getUdpConnection().isDisposed())
 			return;
 
 		getUdpConnection().send(new VocalAddressMessage(message));
