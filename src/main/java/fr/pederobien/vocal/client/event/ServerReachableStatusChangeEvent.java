@@ -28,7 +28,7 @@ public class ServerReachableStatusChangeEvent extends VocalServerEvent {
 	@Override
 	public String toString() {
 		StringJoiner joiner = new StringJoiner(",", "{", "}");
-		joiner.add("server=" + getServer().getName());
+		joiner.add("server=" + getServer());
 		joiner.add("currentReachable=" + getServer().isReachable());
 		joiner.add("oldReachable=" + getOldReachable());
 		return String.format("%s_%s", getName(), joiner);

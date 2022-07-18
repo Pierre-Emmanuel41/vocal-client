@@ -52,7 +52,7 @@ public class VocalServerJoinPreEvent extends VocalServerEvent implements ICancel
 	@Override
 	public String toString() {
 		StringJoiner joiner = new StringJoiner(", ", "{", "}");
-		joiner.add("server=" + getServer().getName());
+		joiner.add("server=" + getServer());
 		joiner.add("player=" + getPlayerName());
 		return String.format("%s_%s", getName(), joiner);
 	}

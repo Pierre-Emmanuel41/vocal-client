@@ -52,6 +52,12 @@ public class VocalServer implements IVocalServer, IEventListener {
 	private Condition serverConfiguration, communicationProtocolVersion;
 	private boolean connectionLost;
 
+	/**
+	 * Creates a vocal server associated to a name and an address;
+	 * 
+	 * @param name    The vocal server's name.
+	 * @param address The vocalserver's address.
+	 */
 	public VocalServer(String name, InetSocketAddress address) {
 		this.name = name;
 		this.address = address;
@@ -216,6 +222,11 @@ public class VocalServer implements IVocalServer, IEventListener {
 
 		IVocalServer other = (IVocalServer) obj;
 		return name.equals(other.getName()) && address.equals(other.getAddress());
+	}
+
+	@Override
+	public String toString() {
+		return String.format("%s_%s:%s", name, getAddress().getAddress().getHostAddress(), getAddress().getPort());
 	}
 
 	@EventHandler

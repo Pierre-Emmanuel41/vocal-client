@@ -40,7 +40,7 @@ public class VocalServerNameChangePreEvent extends VocalServerEvent implements I
 	@Override
 	public String toString() {
 		StringJoiner joiner = new StringJoiner(",", "{", "}");
-		joiner.add("server=" + getServer().getName());
+		joiner.add("server=" + getServer());
 		joiner.add("newName=" + getNewName());
 		return String.format("%s_%s", getName(), joiner);
 	}
