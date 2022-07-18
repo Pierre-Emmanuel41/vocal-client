@@ -101,12 +101,7 @@ public class VocalServer implements IVocalServer, IEventListener {
 			if (oldAddress.equals(address))
 				return;
 
-			Runnable update = () -> {
-				this.address = address;
-				if (tcpConnection != null && !tcpConnection.getTcpConnection().isDisposed())
-					closeConnection();
-				openConnection();
-			};
+			Runnable update = () -> this.address = address;
 			EventManager.callEvent(new VocalServerAddressChangePreEvent(this, address), update, new VocalServerAddressChangePostEvent(this, oldAddress));
 		} finally {
 			lock.unlock();
