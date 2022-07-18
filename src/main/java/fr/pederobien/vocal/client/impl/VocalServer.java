@@ -357,7 +357,7 @@ public class VocalServer implements IVocalServer, IEventListener {
 	}
 
 	private void closeConnection() {
-		if (tcpConnection.getTcpConnection().isDisposed())
+		if (tcpConnection == null || tcpConnection.getTcpConnection().isDisposed())
 			return;
 
 		tcpConnection.getTcpConnection().dispose();
