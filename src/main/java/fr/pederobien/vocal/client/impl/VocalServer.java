@@ -226,7 +226,7 @@ public class VocalServer implements IVocalServer, IEventListener {
 
 	@Override
 	public String toString() {
-		return String.format("%s_%s:%s", name, getAddress().getAddress().getHostAddress(), getAddress().getPort());
+		return String.format("%s_Vocal_%s:%s", name, getAddress().getAddress().getHostAddress(), getAddress().getPort());
 	}
 
 	@EventHandler
