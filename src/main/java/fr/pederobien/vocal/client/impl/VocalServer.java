@@ -304,7 +304,7 @@ public class VocalServer implements IVocalServer, IEventListener {
 		double left = event.getVolume().getLeft();
 
 		// Right volume
-		double right = event.getVolume().getLeft();
+		double right = event.getVolume().getRight();
 
 		SoundResourcesProvider.getMixer().put(new AudioPacket(name, data, global, right, left, true, true));
 	}
