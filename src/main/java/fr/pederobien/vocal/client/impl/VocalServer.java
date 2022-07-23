@@ -182,10 +182,8 @@ public class VocalServer implements IVocalServer, IEventListener {
 			return;
 
 		Consumer<IResponse> update = response -> {
-			if (!response.hasFailed()) {
-				udpConnection.getUdpConnection().disconnect();
-				EventManager.callEvent(new VocalServerLeavePostEvent(this));
-			}
+			udpConnection.getUdpConnection().disconnect();
+			EventManager.callEvent(new VocalServerLeavePostEvent(this));
 			callback.accept(response);
 		};
 
