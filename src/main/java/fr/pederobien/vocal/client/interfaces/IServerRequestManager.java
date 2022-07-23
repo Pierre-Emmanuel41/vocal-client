@@ -129,11 +129,13 @@ public interface IServerRequestManager {
 	/**
 	 * Creates a message in order to send an audio sample to the vocal server.
 	 * 
-	 * @param version The protocol version to use to create a vocal message.
-	 * @param player  The speaking player.
-	 * @param data    The bytes array that represents an audio sample to send.
+	 * @param version   The protocol version to use to create a vocal message.
+	 * @param player    The speaking player.
+	 * @param data      The bytes array that represents an audio sample to send.
+	 * @param isMono    True if the audio signal is a mono signal, false otherwise.
+	 * @param isEncoded True if the audio sample has been encoded, false otherwise.
 	 * 
 	 * @return The message to send to send an audio sample to the vocal server.
 	 */
-	IVocalMessage onPlayerSpeak(float version, IVocalPlayer player, byte[] data);
+	IVocalMessage onPlayerSpeak(float version, IVocalPlayer player, byte[] data, boolean isMono, boolean isEncoded);
 }

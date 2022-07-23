@@ -40,7 +40,7 @@ public class VocalUdpConnection extends VocalConnection implements IEventListene
 		if (!event.getPlayer().getServer().equals(getServer()))
 			return;
 
-		send(getRequestManager().onPlayerSpeak(getVersion(), event.getPlayer(), event.getData()));
+		send(getRequestManager().onPlayerSpeak(getVersion(), event.getPlayer(), event.getData(), event.isMono(), event.isEncoded()));
 	}
 
 	@EventHandler

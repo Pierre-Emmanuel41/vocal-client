@@ -116,8 +116,8 @@ public class RequestManagerV10 extends RequestManager {
 	}
 
 	@Override
-	public IVocalMessage onPlayerSpeak(IVocalPlayer player, byte[] data) {
-		return create(getVersion(), VocalIdentifier.PLAYER_SPEAK_INFO, player.getName(), data);
+	public IVocalMessage onPlayerSpeak(IVocalPlayer player, byte[] data, boolean isMono, boolean isEncoded) {
+		return create(getVersion(), VocalIdentifier.PLAYER_SPEAK_INFO, player.getName(), data, isMono, isEncoded);
 	}
 
 	/**
@@ -208,7 +208,8 @@ public class RequestManagerV10 extends RequestManager {
 	 * @param request The request sent by the remote in order to player an audio sample.
 	 */
 	private void setPlayerSpeak(PlayerSpeakSetMessageV10 request) {
-		EventManager.callEvent(new VocalPlayerSpeakPostEvent(getPlayer(request.getPlayerName()).get(), request.getData(), request.getVolume()));
+		IVocalPlayer transmitter = getPlayer(request.getPlayerName()).get();
+		EventManager.callEvent(new VocalPlayerSpeakPostEvent(transmitter, request.getData(), request.isMono(), request.isEncoded(), request.getVolume()));
 	}
 
 	/**

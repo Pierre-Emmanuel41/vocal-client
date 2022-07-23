@@ -115,10 +115,12 @@ public interface IRequestManager {
 	/**
 	 * Creates a message in order to send an audio sample to the vocal server.
 	 * 
-	 * @param player The speaking player.
-	 * @param data   The bytes array that represents an audio sample to send.
+	 * @param player    The speaking player.
+	 * @param data      The bytes array that represents an audio sample to send.
+	 * @param isMono    True if the audio signal is a mono signal, false otherwise.
+	 * @param isEncoded True if the audio sample has been encoded, false otherwise.
 	 * 
 	 * @return The message to send to send an audio sample to the vocal server.
 	 */
-	IVocalMessage onPlayerSpeak(IVocalPlayer player, byte[] data);
+	IVocalMessage onPlayerSpeak(IVocalPlayer player, byte[] data, boolean isMono, boolean isEncoded);
 }

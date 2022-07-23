@@ -99,8 +99,8 @@ public class ServerRequestManager implements IServerRequestManager {
 	}
 
 	@Override
-	public IVocalMessage onPlayerSpeak(float version, IVocalPlayer player, byte[] data) {
-		return findManagerAndReturn(version, manager -> manager.onPlayerSpeak(player, data));
+	public IVocalMessage onPlayerSpeak(float version, IVocalPlayer player, byte[] data, boolean isMono, boolean isEncoded) {
+		return findManagerAndReturn(version, manager -> manager.onPlayerSpeak(player, data, isMono, isEncoded));
 	}
 
 	/**

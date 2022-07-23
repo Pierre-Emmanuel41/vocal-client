@@ -283,7 +283,7 @@ public class VocalServer implements IVocalServer, IEventListener {
 
 	@EventHandler
 	private void onMicrophoneDataEncoded(MicrophoneDataEncodedEvent event) {
-		EventManager.callEvent(new VocalPlayerSpeakPreEvent(getMainPlayer(), event.getEncoded()));
+		EventManager.callEvent(new VocalPlayerSpeakPreEvent(getMainPlayer(), event.getEncoded(), true, true));
 	}
 
 	@EventHandler
@@ -297,6 +297,12 @@ public class VocalServer implements IVocalServer, IEventListener {
 		// Audio sample
 		byte[] data = event.getData();
 
+		// Data mono status;
+		boolean isMono = event.isMono();
+
+		// Data encoded status
+		boolean isEncoded = event.isEncoded();
+
 		// Global volume
 		double global = event.getVolume().getGlobal();
 
@@ -306,7 +312,7 @@ public class VocalServer implements IVocalServer, IEventListener {
 		// Right volume
 		double right = event.getVolume().getRight();
 
-		SoundResourcesProvider.getMixer().put(new AudioPacket(name, data, global, right, left, true, true));
+		SoundResourcesProvider.getMixer().put(new AudioPacket(name, data, isMono, isEncoded, global, right, left));
 	}
 
 	@EventHandler
