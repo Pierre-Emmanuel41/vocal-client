@@ -20,7 +20,6 @@ import fr.pederobien.vocal.client.event.VocalCommunicationProtocolVersionSetPost
 import fr.pederobien.vocal.client.event.VocalMainPlayerDeafenStatusChangePreEvent;
 import fr.pederobien.vocal.client.event.VocalMainPlayerNameChangePreEvent;
 import fr.pederobien.vocal.client.event.VocalPlayerMuteStatusChangePreEvent;
-import fr.pederobien.vocal.client.event.VocalPlayerSpeakPreEvent;
 import fr.pederobien.vocal.client.event.VocalServerJoinPreEvent;
 import fr.pederobien.vocal.client.event.VocalServerLeavePreEvent;
 import fr.pederobien.vocal.client.interfaces.IVocalServer;
@@ -122,11 +121,6 @@ public class VocalTcpConnection extends VocalConnection implements IEventListene
 			return;
 
 		send(getRequestManager().onPlayerDeafenChange(getVersion(), event.getPlayer(), event.getNewDeafen()), args -> parse(args, event.getCallback(), null));
-	}
-
-	@EventHandler(priority = EventPriority.HIGHEST)
-	private void onPlayerSpeak(VocalPlayerSpeakPreEvent event) {
-
 	}
 
 	@EventHandler
