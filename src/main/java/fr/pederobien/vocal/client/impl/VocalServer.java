@@ -24,6 +24,8 @@ import fr.pederobien.vocal.client.event.VocalPlayerSpeakPostEvent;
 import fr.pederobien.vocal.client.event.VocalPlayerSpeakPreEvent;
 import fr.pederobien.vocal.client.event.VocalServerAddressChangePostEvent;
 import fr.pederobien.vocal.client.event.VocalServerAddressChangePreEvent;
+import fr.pederobien.vocal.client.event.VocalServerClosePostEvent;
+import fr.pederobien.vocal.client.event.VocalServerClosePreEvent;
 import fr.pederobien.vocal.client.event.VocalServerJoinPostEvent;
 import fr.pederobien.vocal.client.event.VocalServerJoinPreEvent;
 import fr.pederobien.vocal.client.event.VocalServerLeavePostEvent;
@@ -126,22 +128,7 @@ public class VocalServer implements IVocalServer, IEventListener {
 			return;
 
 		EventManager.registerListener(this);
-
-		lock.lock();
-		try {
-			openConnection();
-
-			if (!communicationProtocolVersion.await(5000, TimeUnit.MILLISECONDS)) {
-				tcpConnection.getTcpConnection().dispose();
-				udpConnection.getUdpConnection().dispose();
-				throw new IllegalStateException("Time out on establishing the version of the communication protocol.");
-			}
-		} catch (InterruptedException e) {
-			// Do nothing
-		} finally {
-			tryOpening.set(false);
-			lock.unlock();
-		}
+		openConnection();
 	}
 
 	@Override
@@ -192,7 +179,11 @@ public class VocalServer implements IVocalServer, IEventListener {
 
 	@Override
 	public void close() {
-		closeConnection();
+		Runnable update = () -> {
+			closeConnection();
+			EventManager.unregisterListener(this);
+		};
+		EventManager.callEvent(new VocalServerClosePreEvent(this), update, new VocalServerClosePostEvent(this));
 	}
 
 	@Override
@@ -233,6 +224,24 @@ public class VocalServer implements IVocalServer, IEventListener {
 			return;
 
 		setReachable(true);
+
+		Thread communicationProtocolVersionThread = new Thread(() -> {
+			lock.lock();
+			try {
+				if (!communicationProtocolVersion.await(5000, TimeUnit.MILLISECONDS)) {
+					tcpConnection.getTcpConnection().dispose();
+					udpConnection.getUdpConnection().dispose();
+					throw new IllegalStateException("Time out on establishing the version of the communication protocol.");
+				}
+			} catch (InterruptedException e) {
+				// Do nothing
+			} finally {
+				tryOpening.set(false);
+				lock.unlock();
+			}
+		}, "CommunicationProtocolVersion");
+		communicationProtocolVersionThread.setDaemon(true);
+		communicationProtocolVersionThread.start();
 	}
 
 	@EventHandler
