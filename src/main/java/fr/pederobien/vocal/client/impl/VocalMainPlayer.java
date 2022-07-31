@@ -4,6 +4,7 @@ import java.util.function.Consumer;
 
 import fr.pederobien.messenger.interfaces.IResponse;
 import fr.pederobien.sound.impl.SoundResourcesProvider;
+import fr.pederobien.utils.IPausable.PausableState;
 import fr.pederobien.utils.event.EventHandler;
 import fr.pederobien.utils.event.EventManager;
 import fr.pederobien.utils.event.IEventListener;
@@ -52,7 +53,10 @@ public class VocalMainPlayer extends AbstractPlayer implements IVocalMainPlayer,
 		if (event.getPlayer().isMute())
 			SoundResourcesProvider.getMicrophone().pause();
 		else {
-			SoundResourcesProvider.getMicrophone().resume();
+			if (SoundResourcesProvider.getMicrophone().getState() == PausableState.NOT_STARTED)
+				SoundResourcesProvider.getMicrophone().start();
+			else
+				SoundResourcesProvider.getMicrophone().resume();
 		}
 	}
 
@@ -64,7 +68,11 @@ public class VocalMainPlayer extends AbstractPlayer implements IVocalMainPlayer,
 		if (event.getPlayer().isDeafen()) {
 			SoundResourcesProvider.getSpeakers().pause();
 			SoundResourcesProvider.getMixer().clear();
-		} else
-			SoundResourcesProvider.getSpeakers().resume();
+		} else {
+			if (SoundResourcesProvider.getSpeakers().getState() == PausableState.NOT_STARTED)
+				SoundResourcesProvider.getSpeakers().start();
+			else
+				SoundResourcesProvider.getSpeakers().resume();
+		}
 	}
 }
