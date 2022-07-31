@@ -32,6 +32,8 @@ import fr.pederobien.vocal.client.event.VocalServerLeavePostEvent;
 import fr.pederobien.vocal.client.event.VocalServerLeavePreEvent;
 import fr.pederobien.vocal.client.event.VocalServerNameChangePostEvent;
 import fr.pederobien.vocal.client.event.VocalServerNameChangePreEvent;
+import fr.pederobien.vocal.client.event.VocalServerOpenPostEvent;
+import fr.pederobien.vocal.client.event.VocalServerOpenPreEvent;
 import fr.pederobien.vocal.client.event.VocalServerReachableStatusChangeEvent;
 import fr.pederobien.vocal.client.impl.request.ServerRequestManager;
 import fr.pederobien.vocal.client.interfaces.IServerRequestManager;
@@ -127,8 +129,12 @@ public class VocalServer implements IVocalServer, IEventListener {
 		if (isReachable())
 			return;
 
-		EventManager.registerListener(this);
-		openConnection();
+		Runnable update = () -> {
+			EventManager.registerListener(this);
+			openConnection();
+		};
+
+		EventManager.callEvent(new VocalServerOpenPreEvent(this), update, new VocalServerOpenPostEvent(this));
 	}
 
 	@Override
@@ -180,6 +186,7 @@ public class VocalServer implements IVocalServer, IEventListener {
 	@Override
 	public void close() {
 		Runnable update = () -> {
+			tryOpening.set(false);
 			closeConnection();
 			EventManager.unregisterListener(this);
 		};
