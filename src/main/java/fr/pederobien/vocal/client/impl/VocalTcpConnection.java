@@ -81,7 +81,9 @@ public class VocalTcpConnection extends VocalConnection implements IEventListene
 		if (!event.getServer().equals(getServer()))
 			return;
 
-		send(getRequestManager().onServerJoin(getVersion(), event.getPlayerName(), false, false), args -> parse(args, event.getCallback(), null));
+		boolean isMute = getServer().getMainPlayer() == null ? false : getServer().getMainPlayer().isMute();
+		boolean isDeafen = getServer().getMainPlayer() == null ? false : getServer().getMainPlayer().isDeafen();
+		send(getRequestManager().onServerJoin(getVersion(), event.getPlayerName(), isMute, isDeafen), args -> parse(args, event.getCallback(), null));
 	}
 
 	@EventHandler(priority = EventPriority.HIGHEST)
