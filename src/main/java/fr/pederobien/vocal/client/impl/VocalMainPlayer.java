@@ -66,13 +66,10 @@ public class VocalMainPlayer extends AbstractPlayer implements IVocalMainPlayer,
 			return;
 
 		if (event.getPlayer().isDeafen()) {
-			SoundResourcesProvider.getSpeakers().pause();
-			SoundResourcesProvider.getMixer().clear();
+			SoundResourcesProvider.getSpeakers().stop();
 		} else {
-			if (SoundResourcesProvider.getSpeakers().getState() == PausableState.NOT_STARTED)
-				SoundResourcesProvider.getSpeakers().start();
-			else
-				SoundResourcesProvider.getSpeakers().resume();
+			SoundResourcesProvider.getMixer().clear();
+			SoundResourcesProvider.getSpeakers().start();
 		}
 	}
 }
