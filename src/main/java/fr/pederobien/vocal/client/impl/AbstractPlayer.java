@@ -63,6 +63,18 @@ public abstract class AbstractPlayer implements IVocalPlayer {
 		return isDeafen.get();
 	}
 
+	@Override
+	public boolean equals(Object obj) {
+		if (this == obj)
+			return true;
+
+		if (!(obj instanceof IVocalPlayer))
+			return false;
+
+		IVocalPlayer other = (IVocalPlayer) obj;
+		return getName().equals(other.getName());
+	}
+
 	/**
 	 * Set the name of this player. For internal use only.
 	 * 
