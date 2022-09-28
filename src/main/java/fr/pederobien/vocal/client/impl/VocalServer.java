@@ -20,6 +20,7 @@ import fr.pederobien.utils.event.EventManager;
 import fr.pederobien.utils.event.IEventListener;
 import fr.pederobien.utils.event.LogEvent;
 import fr.pederobien.vocal.client.event.VocalCommunicationProtocolVersionSetPostEvent;
+import fr.pederobien.vocal.client.event.VocalPlayerNameChangePostEvent;
 import fr.pederobien.vocal.client.event.VocalPlayerSpeakPostEvent;
 import fr.pederobien.vocal.client.event.VocalPlayerSpeakPreEvent;
 import fr.pederobien.vocal.client.event.VocalServerAddressChangePostEvent;
@@ -361,6 +362,14 @@ public class VocalServer implements IVocalServer, IEventListener {
 		SoundResourcesProvider.getSpeakers().stop();
 		SoundResourcesProvider.getMicrophone().stop();
 		((VocalServerPlayerList) getPlayers()).clear();
+	}
+
+	@EventHandler
+	private void onPlayerNameChanged(VocalPlayerNameChangePostEvent event) {
+		if (!event.getPlayer().getServer().equals(this))
+			return;
+
+		SoundResourcesProvider.getMixer().renameStream(event.getOldName(), event.getPlayer().getName());
 	}
 
 	/**
