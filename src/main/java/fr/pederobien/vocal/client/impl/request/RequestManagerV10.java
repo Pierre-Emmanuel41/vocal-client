@@ -208,8 +208,9 @@ public class RequestManagerV10 extends RequestManager {
 	 * @param request The request sent by the remote in order to player an audio sample.
 	 */
 	private void setPlayerSpeak(PlayerSpeakSetMessageV10 request) {
-		IVocalPlayer transmitter = getPlayer(request.getPlayerName()).get();
-		EventManager.callEvent(new VocalPlayerSpeakPostEvent(transmitter, request.getData(), request.isMono(), request.isEncoded(), request.getVolume()));
+		Optional<IVocalPlayer> optTransmitter = getPlayer(request.getPlayerName());
+		if (optTransmitter.isPresent())
+			EventManager.callEvent(new VocalPlayerSpeakPostEvent(optTransmitter.get(), request.getData(), request.isMono(), request.isEncoded(), request.getVolume()));
 	}
 
 	/**
