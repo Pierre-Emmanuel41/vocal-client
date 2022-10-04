@@ -6,11 +6,14 @@ import java.util.concurrent.locks.ReentrantLock;
 import java.util.function.Consumer;
 
 import fr.pederobien.messenger.interfaces.IResponse;
+import fr.pederobien.sound.impl.SoundResourcesProvider;
 import fr.pederobien.utils.event.EventManager;
 import fr.pederobien.vocal.client.event.VocalPlayerDeafenStatusChangePostEvent;
 import fr.pederobien.vocal.client.event.VocalPlayerMuteStatusChangePostEvent;
 import fr.pederobien.vocal.client.event.VocalPlayerMuteStatusChangePreEvent;
 import fr.pederobien.vocal.client.event.VocalPlayerNameChangePostEvent;
+import fr.pederobien.vocal.client.event.VocalPlayerVolumeChangePostEvent;
+import fr.pederobien.vocal.client.event.VocalPlayerVolumeChangePreEvent;
 import fr.pederobien.vocal.client.interfaces.IVocalPlayer;
 import fr.pederobien.vocal.client.interfaces.IVocalServer;
 
@@ -19,6 +22,7 @@ public abstract class AbstractPlayer implements IVocalPlayer {
 	private String name;
 	private AtomicBoolean isMute, isDeafen;
 	private Lock lock;
+	private float volume;
 
 	/**
 	 * Creates a player associated to a name and a server.
@@ -61,6 +65,24 @@ public abstract class AbstractPlayer implements IVocalPlayer {
 	@Override
 	public boolean isDeafen() {
 		return isDeafen.get();
+	}
+
+	@Override
+	public double getVolume() {
+		return volume;
+	}
+
+	@Override
+	public void setVolume(float volume) {
+		if (this.volume == volume)
+			return;
+
+		float oldVolume = this.volume;
+		Runnable update = () -> {
+			this.volume = volume;
+			SoundResourcesProvider.getMixer().setStreamVolume(getName(), volume);
+		};
+		EventManager.callEvent(new VocalPlayerVolumeChangePreEvent(this, volume), update, new VocalPlayerVolumeChangePostEvent(this, oldVolume));
 	}
 
 	@Override

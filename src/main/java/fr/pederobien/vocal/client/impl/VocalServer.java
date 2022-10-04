@@ -288,7 +288,7 @@ public class VocalServer implements IVocalServer, IEventListener {
 
 		tcpConnection.getServerConfiguration(callback);
 
-		SoundResourcesProvider.getMixer().clear();
+		SoundResourcesProvider.getMixer().clear(false);
 
 		if (!getMainPlayer().isDeafen())
 			SoundResourcesProvider.getSpeakers().start();

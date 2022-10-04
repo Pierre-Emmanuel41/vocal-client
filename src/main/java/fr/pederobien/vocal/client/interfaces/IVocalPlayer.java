@@ -33,4 +33,16 @@ public interface IVocalPlayer {
 	 * @return True is this player is deafen, false otherwise.
 	 */
 	boolean isDeafen();
+
+	/**
+	 * @return The audio volume of the player.
+	 */
+	double getVolume();
+
+	/**
+	 * Set the sound volume of the given player.
+	 * 
+	 * @param volume The new sound volume.
+	 */
+	void setVolume(float volume);
 }
