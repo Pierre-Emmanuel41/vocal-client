@@ -161,7 +161,7 @@ public class VocalTcpConnection extends VocalConnection implements IEventListene
 	 * @param callback The callback to run when a response has been received before the timeout.
 	 */
 	private void send(IVocalMessage message, Consumer<ResponseCallbackArgs> callback) {
-		if (getTcpConnection() == null || getTcpConnection().isDisposed())
+		if (message == null || getTcpConnection() == null || getTcpConnection().isDisposed())
 			return;
 
 		getTcpConnection().send(new VocalCallbackMessage(message, callback));
