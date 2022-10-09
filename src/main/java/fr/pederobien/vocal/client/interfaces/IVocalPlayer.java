@@ -37,7 +37,7 @@ public interface IVocalPlayer {
 	/**
 	 * @return The audio volume of the player.
 	 */
-	double getVolume();
+	float getVolume();
 
 	/**
 	 * Set the sound volume of the given player.

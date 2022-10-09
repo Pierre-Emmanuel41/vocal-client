@@ -68,7 +68,7 @@ public abstract class AbstractPlayer implements IVocalPlayer {
 	}
 
 	@Override
-	public double getVolume() {
+	public float getVolume() {
 		return volume;
 	}
 
