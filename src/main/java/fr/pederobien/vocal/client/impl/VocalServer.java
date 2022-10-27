@@ -1,6 +1,7 @@
 package fr.pederobien.vocal.client.impl;
 
 import java.net.InetSocketAddress;
+import java.time.LocalTime;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.locks.Condition;
@@ -56,6 +57,7 @@ public class VocalServer implements IVocalServer, IEventListener {
 	private Lock lock;
 	private Condition serverConfiguration, communicationProtocolVersion;
 	private boolean connectionLost;
+	private TimeSynchroThread timeSynchroThread;
 
 	/**
 	 * Creates a vocal server associated to a name and an address;
@@ -189,6 +191,8 @@ public class VocalServer implements IVocalServer, IEventListener {
 		Runnable update = () -> {
 			tryOpening.set(false);
 			closeConnection();
+			if (timeSynchroThread != null)
+				timeSynchroThread.interrupt();
 			EventManager.unregisterListener(this);
 		};
 		EventManager.callEvent(new VocalServerClosePreEvent(this), update, new VocalServerClosePostEvent(this));
@@ -224,6 +228,26 @@ public class VocalServer implements IVocalServer, IEventListener {
 	@Override
 	public String toString() {
 		return String.format("%s_Vocal_%s:%s", name, getAddress().getAddress().getHostAddress(), getAddress().getPort());
+	}
+
+	/**
+	 * @return The time synchronized with the remote.
+	 */
+	public LocalTime getTime() {
+		return timeSynchroThread == null ? null : timeSynchroThread.getTime();
+	}
+
+	/**
+	 * Set the time to synchronize with the remote.
+	 * 
+	 * @param time The new time on the remote.
+	 */
+	public void setTime(LocalTime time) {
+		if (timeSynchroThread == null) {
+			timeSynchroThread = new TimeSynchroThread(time);
+			timeSynchroThread.start();
+		} else
+			timeSynchroThread.setTime(time);
 	}
 
 	@EventHandler
@@ -305,6 +329,19 @@ public class VocalServer implements IVocalServer, IEventListener {
 	private void onPlayerSpeak(VocalPlayerSpeakPostEvent event) {
 		if (!event.getPlayer().getServer().equals(this))
 			return;
+
+		LocalTime now = getTime();
+		if (getTime() != null) {
+
+			if (event.getTime().getHour() - now.getHour() > 0)
+				return;
+
+			if (event.getTime().getMinute() - now.getMinute() > 0)
+				return;
+
+			if (event.getTime().getSecond() - now.getSecond() > 1)
+				return;
+		}
 
 		// Player's name
 		String name = event.getPlayer().getName();

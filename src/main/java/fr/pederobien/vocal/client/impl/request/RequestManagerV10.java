@@ -12,6 +12,7 @@ import fr.pederobien.vocal.client.exceptions.PlayerAlreadyRegisteredException;
 import fr.pederobien.vocal.client.impl.AbstractPlayer;
 import fr.pederobien.vocal.client.impl.RequestReceivedHolder;
 import fr.pederobien.vocal.client.impl.VocalSecondaryPlayer;
+import fr.pederobien.vocal.client.impl.VocalServer;
 import fr.pederobien.vocal.client.impl.VocalServerPlayerList;
 import fr.pederobien.vocal.client.impl.VocalTcpConnection;
 import fr.pederobien.vocal.client.interfaces.IVocalMainPlayer;
@@ -22,6 +23,7 @@ import fr.pederobien.vocal.common.impl.messages.v10.GetCommunicationProtocolVers
 import fr.pederobien.vocal.common.impl.messages.v10.GetServerConfigurationV10;
 import fr.pederobien.vocal.common.impl.messages.v10.PlayerSpeakSetMessageV10;
 import fr.pederobien.vocal.common.impl.messages.v10.RegisterPlayerOnServerV10;
+import fr.pederobien.vocal.common.impl.messages.v10.ServerTimeSynchronizationMessageV10;
 import fr.pederobien.vocal.common.impl.messages.v10.SetCommunicationProtocolVersionV10;
 import fr.pederobien.vocal.common.impl.messages.v10.SetPlayerDeafenStatusV10;
 import fr.pederobien.vocal.common.impl.messages.v10.SetPlayerMuteByStatusV10;
@@ -44,6 +46,7 @@ public class RequestManagerV10 extends RequestManager {
 		// Server messages
 		getRequests().put(VocalIdentifier.GET_CP_VERSIONS, holder -> onGetCommunicationProtocolVersions((GetCommunicationProtocolVersionsV10) holder.getRequest()));
 		getRequests().put(VocalIdentifier.SET_CP_VERSION, holder -> onSetCommunicationProtocolVersion(holder));
+		getRequests().put(VocalIdentifier.SERVER_TIME_SYNCHRO, holder -> onTimeSynchronization((ServerTimeSynchronizationMessageV10) holder.getRequest()));
 
 		// Player messages
 		getRequests().put(VocalIdentifier.REGISTER_PLAYER_ON_SERVER, holder -> registerPlayerOnServer((RegisterPlayerOnServerV10) holder.getRequest()));
@@ -145,6 +148,15 @@ public class RequestManagerV10 extends RequestManager {
 	}
 
 	/**
+	 * Update the actual time with the actual time on the remote.
+	 * 
+	 * @param request The request sent by the remote in order to time-synchronize this client with the remote.
+	 */
+	private void onTimeSynchronization(ServerTimeSynchronizationMessageV10 request) {
+		((VocalServer) getServer()).setTime(request.getTime());
+	}
+
+	/**
 	 * Adds a player on the server.
 	 * 
 	 * @param request The request sent by the remote in order to add a player.
@@ -210,7 +222,8 @@ public class RequestManagerV10 extends RequestManager {
 	private void setPlayerSpeak(PlayerSpeakSetMessageV10 request) {
 		Optional<IVocalPlayer> optTransmitter = getPlayer(request.getPlayerName());
 		if (optTransmitter.isPresent())
-			EventManager.callEvent(new VocalPlayerSpeakPostEvent(optTransmitter.get(), request.getData(), request.isMono(), request.isEncoded(), request.getVolume()));
+			EventManager.callEvent(new VocalPlayerSpeakPostEvent(request.getTime(), optTransmitter.get(), request.getData(), request.isMono(), request.isEncoded(),
+					request.getVolume()));
 	}
 
 	/**

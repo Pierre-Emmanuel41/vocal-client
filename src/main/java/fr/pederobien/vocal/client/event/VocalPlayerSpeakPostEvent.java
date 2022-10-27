@@ -1,11 +1,13 @@
 package fr.pederobien.vocal.client.event;
 
+import java.time.LocalTime;
 import java.util.StringJoiner;
 
 import fr.pederobien.vocal.client.interfaces.IVocalPlayer;
 import fr.pederobien.vocal.common.impl.VolumeResult;
 
 public class VocalPlayerSpeakPostEvent extends VocalPlayerEvent {
+	private LocalTime time;
 	private byte[] data;
 	private boolean isMono, isEncoded;
 	private VolumeResult volume;
@@ -13,18 +15,27 @@ public class VocalPlayerSpeakPostEvent extends VocalPlayerEvent {
 	/**
 	 * Creates an event thrown when an audio sample should be played.
 	 * 
+	 * @param time      The time stamp at which the audio sample has been sent by the server.
 	 * @param player    The speaking player.
 	 * @param data      The bytes array that represents the audio sample.
 	 * @param volume    The different sound volume of the audio sample.
 	 * @param isMono    True if the audio signal is a mono signal, false otherwise.
 	 * @param isEncoded True if the audio sample has been encoded, false otherwise.
 	 */
-	public VocalPlayerSpeakPostEvent(IVocalPlayer player, byte[] data, boolean isMono, boolean isEncoded, VolumeResult volume) {
+	public VocalPlayerSpeakPostEvent(LocalTime time, IVocalPlayer player, byte[] data, boolean isMono, boolean isEncoded, VolumeResult volume) {
 		super(player);
+		this.time = time;
 		this.data = data;
 		this.isMono = isMono;
 		this.isEncoded = isEncoded;
 		this.volume = volume;
+	}
+
+	/**
+	 * @return The time at which the server has sent the audio sample.
+	 */
+	public LocalTime getTime() {
+		return time;
 	}
 
 	/**
