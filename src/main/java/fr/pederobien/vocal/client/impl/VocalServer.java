@@ -155,7 +155,7 @@ public class VocalServer implements IVocalServer, IEventListener {
 		try {
 			if (!serverConfiguration.await(5000, TimeUnit.MILLISECONDS)) {
 				isJoined.set(false);
-				throw new IllegalStateException("Time out on server configuration request.");
+				EventManager.callEvent(new LogEvent("Time out on server configuration request."));
 			}
 
 			isJoined.set(true);
@@ -179,6 +179,10 @@ public class VocalServer implements IVocalServer, IEventListener {
 
 		Consumer<IResponse> update = response -> {
 			udpConnection.getUdpConnection().disconnect();
+			if (timeSynchroThread != null)
+				timeSynchroThread.interrupt();
+
+			timeSynchroThread = null;
 			EventManager.callEvent(new VocalServerLeavePostEvent(this));
 			callback.accept(response);
 		};
@@ -191,8 +195,6 @@ public class VocalServer implements IVocalServer, IEventListener {
 		Runnable update = () -> {
 			tryOpening.set(false);
 			closeConnection();
-			if (timeSynchroThread != null)
-				timeSynchroThread.interrupt();
 			EventManager.unregisterListener(this);
 		};
 		EventManager.callEvent(new VocalServerClosePreEvent(this), update, new VocalServerClosePostEvent(this));
@@ -263,7 +265,7 @@ public class VocalServer implements IVocalServer, IEventListener {
 				if (!communicationProtocolVersion.await(5000, TimeUnit.MILLISECONDS)) {
 					tcpConnection.getTcpConnection().dispose();
 					udpConnection.getUdpConnection().dispose();
-					throw new IllegalStateException("Time out on establishing the version of the communication protocol.");
+					EventManager.callEvent(new LogEvent("Time out on establishing the version of the communication protocol."));
 				}
 			} catch (InterruptedException e) {
 				// Do nothing
@@ -304,6 +306,12 @@ public class VocalServer implements IVocalServer, IEventListener {
 				lock.lock();
 				try {
 					serverConfiguration.signal();
+					SoundResourcesProvider.getMixer().clear(false);
+
+					if (!getMainPlayer().isDeafen())
+						SoundResourcesProvider.getSpeakers().start();
+					if (!getMainPlayer().isMute())
+						SoundResourcesProvider.getMicrophone().start();
 				} finally {
 					lock.unlock();
 				}
@@ -311,13 +319,6 @@ public class VocalServer implements IVocalServer, IEventListener {
 		};
 
 		tcpConnection.getServerConfiguration(callback);
-
-		SoundResourcesProvider.getMixer().clear(false);
-
-		if (!getMainPlayer().isDeafen())
-			SoundResourcesProvider.getSpeakers().start();
-		if (!getMainPlayer().isMute())
-			SoundResourcesProvider.getMicrophone().start();
 	}
 
 	@EventHandler
